@@ -1,9 +1,12 @@
 document.addEventListener("DOMContentLoaded", function () {
   document.title = "QRZMail Webmail";
 
+  // Only redirect on the actual login page, not the mail interface
+  // SOGo login page has a form named "loginForm" AND is at /SOGo/ (not /SOGo/so/)
   var loginForm = document.forms.namedItem("loginForm");
-  if (loginForm) {
+  if (loginForm && window.location.pathname === "/SOGo/") {
     window.location.href = "/user";
+    return;
   }
 
   var style = document.createElement("style");
@@ -24,26 +27,28 @@ document.addEventListener("DOMContentLoaded", function () {
   badge.textContent = "QRZMail Webmail";
   document.body.appendChild(badge);
 
-  brandVersionText();
-  brandTooltips();
-  new MutationObserver(function () {
-    brandVersionText();
-    brandTooltips();
-  }).observe(document.body, {
-    childList: true,
-    subtree: true,
-    characterData: true
+  try { brandVersionText(); } catch (e) {}
+  try { brandTooltips(); } catch (e) {}
+
+  // Use a debounced observer scoped to specific containers
+  var targetNodes = document.querySelectorAll(".sg-mail-main, .sg-mailbox-list, .sg-toolbar");
+  if (targetNodes.length === 0) targetNodes = [document.body];
+
+  targetNodes.forEach(function (node) {
+    new MutationObserver(function () {
+      try { brandVersionText(); } catch (e) {}
+      try { brandTooltips(); } catch (e) {}
+    }).observe(node, {
+      childList: true,
+      subtree: true
+    });
   });
 });
 
 function brandVersionText() {
-  if (!document.body) {
-    return;
-  }
-
+  if (!document.body) return;
   var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   var node;
-
   while ((node = walker.nextNode())) {
     var value = node.nodeValue || "";
     var branded = value
@@ -54,33 +59,23 @@ function brandVersionText() {
       .replace(/\bSOGo\b/g, "QRZMail Webmail")
       .replace(/\bSOGO\b/g, "QRZMail Webmail")
       .replace(/\b5\.12\.8\b/g, "QRZMail 2026");
-
-    if (branded !== value) {
-      node.nodeValue = branded;
-    }
+    if (branded !== value) node.nodeValue = branded;
   }
 }
 
 function brandTooltips() {
   var attributes = ["title", "aria-label", "data-original-title", "data-bs-original-title"];
   var elements = document.querySelectorAll("[title], [aria-label], [data-original-title], [data-bs-original-title]");
-
   elements.forEach(function (element) {
     attributes.forEach(function (attribute) {
       var value = element.getAttribute(attribute);
-      if (!value) {
-        return;
-      }
-
+      if (!value) return;
       var branded = value
         .replace(/mailcow preferences/ig, "QRZMail preferences")
         .replace(/mailcow/ig, "QRZMail")
         .replace(/\bSOGo\b/g, "QRZMail Webmail")
         .replace(/\bSOGO\b/g, "QRZMail Webmail");
-
-      if (branded !== value) {
-        element.setAttribute(attribute, branded);
-      }
+      if (branded !== value) element.setAttribute(attribute, branded);
     });
   });
 }
@@ -88,13 +83,14 @@ function brandTooltips() {
 function mc_logout() {
   fetch("/", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/x-www-form-urlencoded"
-    },
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
     body: "logout=1"
   }).finally(function () {
     window.location.href = "https://qrzmail.com/login";
   });
 }
 
-CKEDITOR.addCss("body {font-size: 16px !important}");
+// Guard CKEDITOR access
+if (typeof CKEDITOR !== "undefined") {
+  CKEDITOR.addCss("body {font-size: 16px !important}");
+}
