@@ -256,6 +256,7 @@ export default function DomainsClient() {
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
   const [expandedConnections, setExpandedConnections] = useState<Set<string>>(new Set());
   const [subscription, setSubscription] = useState<string | null>(null);
+  const [mailboxDomainId, setMailboxDomainId] = useState<string>("");
 
   const activeDomains = useMemo(
     () => domains.filter((domain) => domain.status === "active"),
@@ -750,7 +751,7 @@ export default function DomainsClient() {
               <div className="form-grid">
                 <div className="field">
                   <label htmlFor="domainId">Domain</label>
-                  <select id="domainId" name="domainId" required>
+                  <select id="domainId" name="domainId" required value={mailboxDomainId} onChange={(e) => setMailboxDomainId(e.target.value)}>
                     <option value="">Choose active domain</option>
                     {activeDomains.map((domain) => (
                       <option key={domain.id} value={domain.id}>{domain.domain}</option>
@@ -759,7 +760,11 @@ export default function DomainsClient() {
                 </div>
                 <div className="field">
                   <label htmlFor="localPart">Mailbox</label>
-                  <input id="localPart" name="localPart" placeholder="support" required />
+                  <div className="input-suffix">
+                    <input id="localPart" name="localPart" placeholder="support" required />
+                    <span className="suffix">@{activeDomains.find((d) => d.id === mailboxDomainId)?.domain ?? "domain.com"}</span>
+                  </div>
+                  <p className="field-hint">Enter the local part only (e.g., "support"). The domain is already selected above.</p>
                 </div>
                 <div className="field">
                   <label htmlFor="name">Display name</label>
