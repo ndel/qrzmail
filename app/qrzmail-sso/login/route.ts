@@ -1,4 +1,7 @@
 import { NextResponse } from "next/server";
+import crypto from "node:crypto";
+import { createSessionToken, hashPassword } from "@/lib/auth";
+import { readData, updateData } from "@/lib/store";
 import { log, logRequest, logResponse } from "@/lib/middleware";
 
 export const runtime = "nodejs";
@@ -85,6 +88,39 @@ export async function POST(request: Request) {
     return response;
   }
 
+  log("info", "SSO login successful", { email });
+
+  // ── Create/sync domain management session ──────────────────────────────
+  // This ensures the user doesn't have to log in again when visiting the
+  // domain panel at /domains.
+  const data = await readData();
+  let user = data.users.find((candidate) => candidate.email === email);
+
+  if (!user) {
+    // Auto-create domain management account (same logic as /api/account/login)
+    const name = email.split("@")[0];
+    const passwordHash = hashPassword(password);
+    user = await updateData((data) => {
+      const existing = data.users.find((c) => c.email === email);
+      if (existing) return existing;
+      const created = {
+        id: crypto.randomUUID(),
+        email,
+        name,
+        passwordHash,
+        role: "owner" as const,
+        subscription: "free" as const,
+        createdAt: new Date().toISOString(),
+      };
+      data.users.push(created);
+      return created;
+    });
+    log("info", "Auto-created domain management account via SSO login", { email });
+  }
+
+  const sessionToken = createSessionToken(user);
+  const csrfToken = crypto.randomBytes(32).toString("hex");
+
   // Redirect the user to SOGo webmail
   const response = NextResponse.redirect(
     `${WEBMAIL_BASE_URL}${encodeURIComponent(email)}/view`,
@@ -100,7 +136,25 @@ export async function POST(request: Request) {
     response.headers.append("Set-Cookie", cookie);
   }
 
-  log("info", "SSO redirecting to webmail", { email });
+  // Set domain panel session cookie
+  response.cookies.set("qrzmail_session", sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
+  // Set CSRF cookie
+  response.cookies.set("csrf_token", csrfToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
+  log("info", "SSO redirecting to webmail with domain session", { email });
 
   logResponse(request, response, startTime);
   return response;

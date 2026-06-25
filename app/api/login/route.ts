@@ -1,5 +1,8 @@
 import { NextResponse } from "next/server";
 import tls from "node:tls";
+import crypto from "node:crypto";
+import { createSessionToken, hashPassword } from "@/lib/auth";
+import { readData, updateData } from "@/lib/store";
 import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
 
 export const runtime = "nodejs";
@@ -118,7 +121,56 @@ export async function POST(request: Request) {
 
   log("info", "Webmail login successful", { email });
 
-  const response = NextResponse.json({ webmailUrl: WEBMAIL_URL });
+  // Also create/sync a domain management session so the user doesn't
+  // have to log in again when visiting the domain panel.
+  const data = await readData();
+  let user = data.users.find((candidate) => candidate.email === email);
+
+  if (!user) {
+    // Auto-create domain management account
+    const name = email.split("@")[0];
+    const passwordHash = hashPassword(password);
+    user = await updateData((data) => {
+      const existing = data.users.find((c) => c.email === email);
+      if (existing) return existing;
+      const created = {
+        id: crypto.randomUUID(),
+        email,
+        name,
+        passwordHash,
+        role: "owner" as const,
+        subscription: "free" as const,
+        createdAt: new Date().toISOString(),
+      };
+      data.users.push(created);
+      return created;
+    });
+    log("info", "Auto-created domain management account via webmail login", { email });
+  }
+
+  const sessionToken = createSessionToken(user);
+  const csrfToken = crypto.randomBytes(32).toString("hex");
+
+  const response = NextResponse.json({ webmailUrl: WEBMAIL_URL, csrfToken });
+
+  // Set session cookie for domain panel
+  response.cookies.set("qrzmail_session", sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
+  // Set CSRF cookie
+  response.cookies.set("csrf_token", csrfToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
   logResponse(request, response, startTime);
   return response;
 }
