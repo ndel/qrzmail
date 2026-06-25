@@ -1,0 +1,31 @@
+{
+  "name": "qrzmail",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.11.1",
+    "mysql2": "^3.22.5",
+    "next": "^16.2.9",
+    "nodemailer": "^9.0.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "22.15.32",
+    "@types/nodemailer": "^8.0.1",
+    "@types/react": "19.0.12",
+    "@types/react-dom": "19.0.4",
+    "eslint": "9.29.0",
+    "eslint-config-next": "^16.2.9",
+    "typescript": "5.8.3"
+  }
+}

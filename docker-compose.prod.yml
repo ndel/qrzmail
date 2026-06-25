@@ -1,0 +1,53 @@
+services:
+  qrzmail-web:
+    build:
+      context: .
+    container_name: qrzmail-web
+    restart: unless-stopped
+    environment:
+      NODE_TLS_REJECT_UNAUTHORIZED: "0"
+      MAILCOW_API_URL: "https://nginx-mailcow"
+      MAILCOW_API_KEY: "${MAILCOW_API_KEY}"
+      MAIL_DOMAIN: "qrzmail.com"
+      SESSION_SECRET: "${SESSION_SECRET}"
+      QRZMAIL_DATA_DIR: "/data"
+      WEBMAIL_URL: "https://mail.qrzmail.com/SOGo/"
+      WEBMAIL_BASE_URL: "https://mail.qrzmail.com/SOGo/so/"
+      SOGO_CONNECT_URL: "https://nginx-mailcow/SOGo/connect"
+      SOGO_INTERNAL_URL: "http://172.22.1.248:20000/SOGo/connect"
+      IMAP_HOST: "dovecot-mailcow"
+      IMAP_PORT: "993"
+      IMAP_SERVERNAME: "mail.qrzmail.com"
+      # SMTP for password reset emails
+      # Option A: Internal postfix relay (port 25, no auth) — DEFAULT
+      #   NOTE: postfix-mailcow may NOT relay to external addresses by default.
+      #   If recovery emails are not being delivered, switch to Option B.
+      SMTP_HOST: "postfix-mailcow"
+      SMTP_PORT: "25"
+      SMTP_USER: ""
+      SMTP_PASS: ""
+      # Option B: External SMTP relay (recommended for reliable delivery)
+      # Uncomment and configure these instead of the above:
+      # SMTP_HOST: "smtp.sendgrid.net"
+      # SMTP_PORT: "587"
+      # SMTP_USER: "apikey"
+      # SMTP_PASS: "${SENDGRID_API_KEY}"
+      SMTP_FROM: "QRZMail Support <noreply@qrzmail.com>"
+      BASE_URL: "https://qrzmail.com"
+      # Uncomment to enable debug endpoint (remember to disable after troubleshooting):
+      # DEBUG_MODE: "true"
+      # Mailcow MySQL — used to sync _sogo_static_view after password changes
+      MAILCOW_DB_HOST: "mysql-mailcow"
+      MAILCOW_DB_PORT: "3306"
+      MAILCOW_DB_USER: "mailcow"
+      MAILCOW_DB_PASS: "${MAILCOW_DB_PASS}"
+      MAILCOW_DB_NAME: "mailcow"
+    volumes:
+      - ./data:/data
+    networks:
+      - mailcow-network
+
+networks:
+  mailcow-network:
+    external: true
+    name: mailcowdockerized_mailcow-network
