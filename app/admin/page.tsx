@@ -114,7 +114,13 @@ export default function AdminPage() {
           ? `/api/admin/domains/${confirm.id}`
           : `/api/admin/mailboxes/${confirm.id}`;
 
-      const res = await fetch(endpoint, { method: "DELETE" });
+      const headers: Record<string, string> = {};
+      const csrfToken = sessionStorage.getItem("csrfToken");
+      if (csrfToken) {
+        headers["x-csrf-token"] = csrfToken;
+      }
+
+      const res = await fetch(endpoint, { method: "DELETE", headers });
       const body = await res.json().catch(() => ({}));
 
       if (!res.ok) {

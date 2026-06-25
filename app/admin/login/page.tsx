@@ -29,6 +29,12 @@ export default function AdminLoginPage() {
         return;
       }
 
+      // Store CSRF token for subsequent API requests
+      const result = body as { csrfToken?: string };
+      if (result.csrfToken) {
+        sessionStorage.setItem("csrfToken", result.csrfToken);
+      }
+
       router.push("/admin");
     } catch {
       setError("Network error. Try again.");

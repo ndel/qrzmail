@@ -50,9 +50,19 @@ export async function POST(request: Request) {
   const response = NextResponse.json({
     user: { email: user.email, name: user.name, role: user.role },
   });
-  setCsrfCookie(response);
+  const csrfToken = setCsrfCookie(response);
+
+  // Re-create the response with the CSRF token in the body, preserving the Set-Cookie header
+  const setCookieHeader = response.headers.get("set-cookie");
+  const finalResponse = NextResponse.json({
+    user: { email: user.email, name: user.name, role: user.role },
+    csrfToken,
+  });
+  if (setCookieHeader) {
+    finalResponse.headers.set("set-cookie", setCookieHeader);
+  }
 
   log("info", "Admin logged in", { email: user.email });
-  logResponse(request, response, startTime);
-  return response;
+  logResponse(request, finalResponse, startTime);
+  return finalResponse;
 }
