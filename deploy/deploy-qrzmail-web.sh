@@ -2,7 +2,6 @@
 set -euo pipefail
 
 APP_DIR=/opt/qrzmail-web
-ARCHIVE=/tmp/qrzmail-web.tgz
 SESSION_SECRET_VALUE=352dc639eff7427eb4c44854665c194f307147d19339945735477dc1a68a4f8a
 
 mkdir -p "$APP_DIR/data"
@@ -13,12 +12,11 @@ else
   touch /tmp/qrzmail-web.env
 fi
 
-find "$APP_DIR" -mindepth 1 -maxdepth 1 \
-  ! -name .env \
-  ! -name data \
-  -exec rm -rf {} +
+# Git pull instead of tarball extraction
+cd "$APP_DIR"
+git pull origin main
 
-tar -xzf "$ARCHIVE" -C "$APP_DIR"
+# Restore .env (preserved across pulls)
 mv /tmp/qrzmail-web.env "$APP_DIR/.env"
 
 if ! grep -q '^SESSION_SECRET=' "$APP_DIR/.env"; then
