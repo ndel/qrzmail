@@ -225,6 +225,36 @@ export async function POST(request: Request) {
     // Non-fatal — user can still use webmail; they'll get an account on first domain login
   }
 
+  // ── Sync mailbox to local SQLite ──────────────────────────────────────
+  // Insert a record into the local mailboxes table so the superadmin panel
+  // and password-reset endpoint can see this mailbox.
+  try {
+    const { makeId, nowIso } = await import("@/lib/store");
+    const db = (await import("@/lib/db")).default;
+
+    // Look up the domain_id for MAIL_DOMAIN
+    const domain = db.prepare("SELECT id FROM domains WHERE domain = ?").get(MAIL_DOMAIN) as { id: string } | undefined;
+    if (!domain) {
+      log("warn", "Cannot sync mailbox to local table — domain not found in local DB", { domain: MAIL_DOMAIN });
+    } else {
+      // Look up the owner_id for this email (should have been created above)
+      const user = db.prepare("SELECT id FROM users WHERE email = ?").get(emailAddress) as { id: string } | undefined;
+      const ownerId = user?.id ?? null;
+
+      // Check if a mailbox record already exists for this email
+      const existing = db.prepare("SELECT id FROM mailboxes WHERE email = ?").get(emailAddress);
+      if (!existing) {
+        db.prepare(
+          "INSERT INTO mailboxes (id, owner_id, domain_id, email, name, quota_mb, recovery_email, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        ).run(makeId(), ownerId, domain.id, emailAddress, name, 3072, recoveryEmail || null, nowIso());
+        log("info", "Synced mailbox to local SQLite", { email: emailAddress });
+      }
+    }
+  } catch (err) {
+    log("error", "Failed to sync mailbox to local SQLite", { email: emailAddress, error: String(err) });
+    // Non-fatal — mailbox still exists in Mailcow
+  }
+
   // Clean up old rate limit entries (housekeeping)
   try {
     cleanRateLimits();
