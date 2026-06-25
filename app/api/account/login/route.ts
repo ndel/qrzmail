@@ -189,15 +189,23 @@ export async function POST(request: Request) {
   // Set CSRF cookie and capture the token for the response body
   const csrfToken = setCsrfCookie(response);
 
-  // Re-create the response with the CSRF token in the body, preserving the Set-Cookie header
-  // (which contains both the session cookie and the CSRF cookie).
-  const setCookieHeader = response.headers.get("set-cookie");
+  // Re-create the response with the CSRF token in the body, preserving cookies
   const finalResponse = NextResponse.json({
     user: { email: user.email, name: user.name, role: user.role },
     csrfToken,
   });
-  if (setCookieHeader) {
-    finalResponse.headers.set("set-cookie", setCookieHeader);
+
+  // Copy cookies from the first response to the new one using the internal cookie store
+  // (more reliable than reading the Set-Cookie header)
+  const cookies = response.cookies.getAll();
+  for (const cookie of cookies) {
+    finalResponse.cookies.set(cookie.name, cookie.value, {
+      httpOnly: cookie.httpOnly,
+      sameSite: cookie.sameSite as "lax" | "strict" | "none" | undefined,
+      secure: cookie.secure,
+      path: cookie.path,
+      maxAge: cookie.maxAge,
+    });
   }
 
   logResponse(request, finalResponse, startTime);

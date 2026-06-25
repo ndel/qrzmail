@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { setSessionCookie, verifyPassword } from "@/lib/auth";
+import { createSessionToken, verifyPassword } from "@/lib/auth";
 import { readData } from "@/lib/store";
 import { normalizeEmail } from "@/lib/validation";
 import { log, logRequest, logResponse, parseJsonBody, setCsrfCookie } from "@/lib/middleware";
@@ -27,10 +27,10 @@ export async function POST(request: Request) {
     logResponse(request, parsed.error, startTime);
     return parsed.error;
   }
-  const body = parsed.data;
+  const loginBody = parsed.data;
 
-  const email = normalizeEmail(body.email ?? "");
-  const password = body.password ?? "";
+  const email = normalizeEmail(loginBody.email ?? "");
+  const password = loginBody.password ?? "";
 
   const data = await readData();
   const user = data.users.find(
@@ -44,22 +44,51 @@ export async function POST(request: Request) {
     return response;
   }
 
-  await setSessionCookie(user);
+  // Build the session token
+  const sessionToken = createSessionToken(user);
 
-  // Set CSRF cookie for subsequent state-changing requests
+  // Create the final response with CSRF token in the body
   const response = NextResponse.json({
     user: { email: user.email, name: user.name, role: user.role },
+    csrfToken: "",
   });
+
+  // Set session cookie directly on the final response
+  response.cookies.set("qrzmail_session", sessionToken, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: true,
+    path: "/",
+    maxAge: 7 * 24 * 60 * 60,
+  });
+
+  // Set CSRF cookie directly on the final response and capture the token
   const csrfToken = setCsrfCookie(response);
 
-  // Re-create the response with the CSRF token in the body, preserving the Set-Cookie header
-  const setCookieHeader = response.headers.get("set-cookie");
+  // Now update the response body with the actual CSRF token.
+  // We can't modify the body of an existing NextResponse.json(), so we
+  // need to create a new one. But we must preserve the cookies that were
+  // set via response.cookies.set().
+  //
+  // In Next.js, response.cookies.set() stores cookies in an internal
+  // ResponseCookies object, NOT in the Headers. So response.headers.get("set-cookie")
+  // returns null. To preserve cookies, we read them from the internal store
+  // and set them on the new response.
   const finalResponse = NextResponse.json({
     user: { email: user.email, name: user.name, role: user.role },
     csrfToken,
   });
-  if (setCookieHeader) {
-    finalResponse.headers.set("set-cookie", setCookieHeader);
+
+  // Copy cookies from the first response to the new one
+  const cookies = response.cookies.getAll();
+  for (const cookie of cookies) {
+    finalResponse.cookies.set(cookie.name, cookie.value, {
+      httpOnly: cookie.httpOnly,
+      sameSite: cookie.sameSite as "lax" | "strict" | "none" | undefined,
+      secure: cookie.secure,
+      path: cookie.path,
+      maxAge: cookie.maxAge,
+    });
   }
 
   log("info", "Admin logged in", { email: user.email });
