@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { resolveTxt } from "node:dns/promises";
+import { Resolver } from "node:dns";
+import { promisify } from "node:util";
 import { getCurrentUser } from "@/lib/auth";
 import { MailcowApiError, addMailcowDomain, isAlreadyExistsError } from "@/lib/mailcow";
 import { nowIso, updateData } from "@/lib/store";
@@ -48,6 +49,11 @@ export async function POST(request: Request, context: Params) {
   }
 
   // Step 2: DNS lookup (async, outside updateData)
+  // Use a fresh Resolver instance to bypass Node.js's DNS result cache.
+  // This ensures that if the user just added the TXT record, we don't
+  // get a stale cached NXDOMAIN response from a previous attempt.
+  const resolver = new Resolver();
+  const resolveTxt = promisify(resolver.resolveTxt.bind(resolver));
   const txtValues = await resolveTxt(`_qrzmail.${domain.domain}`).catch(() => []);
   const records = txtValues.map((parts) => parts.join(""));
   if (!records.includes(domain.verificationToken)) {
