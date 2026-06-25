@@ -136,23 +136,18 @@ export async function POST(request: Request) {
     response.headers.append("Set-Cookie", cookie);
   }
 
-  // Set domain panel session cookie
-  response.cookies.set("qrzmail_session", sessionToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
+  // Set domain panel session cookie (use headers.append to avoid
+  // overwriting the PHP session cookie already appended above)
+  response.headers.append(
+    "Set-Cookie",
+    `qrzmail_session=${sessionToken}; HttpOnly; SameSite=Lax; Secure; Path=/; Max-Age=${7 * 24 * 60 * 60}`
+  );
 
   // Set CSRF cookie
-  response.cookies.set("csrf_token", csrfToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
+  response.headers.append(
+    "Set-Cookie",
+    `csrf_token=${csrfToken}; HttpOnly; SameSite=Lax; Secure; Path=/; Max-Age=${7 * 24 * 60 * 60}`
+  );
 
   log("info", "SSO redirecting to webmail with domain session", { email });
 
