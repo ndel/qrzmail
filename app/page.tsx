@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import PricingSection from "./components/pricing-section";
 
 export const metadata: Metadata = {
   title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
@@ -192,101 +193,7 @@ export default function Home() {
       </section>
 
       {/* ── Pricing / Plans section ─────────────────────────── */}
-      <section>
-        <div className="home-section-label">
-          <div>
-            <span className="eyebrow">✦ Simple, transparent pricing</span>
-            <h2 style={{ marginTop: "10px" }}>Plans for every need</h2>
-            <p>
-              Start with 5 free mailboxes on your own domain. Upgrade when you
-              need more storage, more accounts, or priority support.
-            </p>
-          </div>
-        </div>
-
-        <div className="pricing-grid">
-          {/* Free Plan */}
-          <div className="panel pricing-card pricing-free">
-            <div className="pricing-badge">Free</div>
-            <div className="pricing-header">
-              <strong className="pricing-name">Starter</strong>
-              <div className="pricing-amount">
-                <span className="pricing-price">$0</span>
-                <span className="pricing-period">forever</span>
-              </div>
-            </div>
-            <ul className="pricing-features">
-              <li className="pricing-feature">✓ Up to 5 mailboxes</li>
-              <li className="pricing-feature">✓ 5 GB storage per mailbox</li>
-              <li className="pricing-feature">✓ Unlimited aliases</li>
-              <li className="pricing-feature">✓ SPF, DKIM & DMARC</li>
-              <li className="pricing-feature">✓ IMAP / SMTP access</li>
-              <li className="pricing-feature">✓ Calendar & contacts</li>
-              <li className="pricing-feature">✓ Email support</li>
-            </ul>
-            <Link href="/signup" className="button green full">
-              Get started free →
-            </Link>
-          </div>
-
-          {/* Starter Plan */}
-          <div className="panel pricing-card pricing-recommended">
-            <div className="pricing-badge pricing-badge-popular">Most Popular</div>
-            <div className="pricing-header">
-              <strong className="pricing-name">Starter</strong>
-              <div className="pricing-amount">
-                <span className="pricing-price">$9</span>
-                <span className="pricing-period">/month</span>
-              </div>
-            </div>
-            <ul className="pricing-features">
-              <li className="pricing-feature">✓ Up to 25 mailboxes</li>
-              <li className="pricing-feature">✓ 10 GB storage per mailbox</li>
-              <li className="pricing-feature">✓ Unlimited aliases</li>
-              <li className="pricing-feature">✓ SPF, DKIM & DMARC</li>
-              <li className="pricing-feature">✓ IMAP / SMTP access</li>
-              <li className="pricing-feature">✓ Calendar & contacts</li>
-              <li className="pricing-feature">✓ Priority email support</li>
-            </ul>
-            <Link href="/subscribe" className="button primary full">
-              Subscribe →
-            </Link>
-          </div>
-
-          {/* Business Plan */}
-          <div className="panel pricing-card">
-            <div className="pricing-badge">Business</div>
-            <div className="pricing-header">
-              <strong className="pricing-name">Business</strong>
-              <div className="pricing-amount">
-                <span className="pricing-price">$29</span>
-                <span className="pricing-period">/month</span>
-              </div>
-            </div>
-            <ul className="pricing-features">
-              <li className="pricing-feature">✓ Up to 100 mailboxes</li>
-              <li className="pricing-feature">✓ 25 GB storage per mailbox</li>
-              <li className="pricing-feature">✓ Unlimited aliases</li>
-              <li className="pricing-feature">✓ SPF, DKIM & DMARC</li>
-              <li className="pricing-feature">✓ IMAP / SMTP access</li>
-              <li className="pricing-feature">✓ Calendar & contacts</li>
-              <li className="pricing-feature">✓ Phone & email support</li>
-              <li className="pricing-feature">✓ DKIM/DMARC consultation</li>
-            </ul>
-            <Link href="/subscribe" className="button full">
-              Subscribe →
-            </Link>
-          </div>
-        </div>
-
-        <p className="pricing-footnote">
-          All plans include encrypted email in transit, spam filtering, and
-          access to the QRZMail webmail portal. Need a custom plan?{" "}
-          <Link href="mailto:admin@qrzmail.com" className="text-link">
-            Contact us
-          </Link>.
-        </p>
-      </section>
+      <PricingSection />
 
     </div>
   );

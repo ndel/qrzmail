@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 const ADMIN_EMAIL = "admin@qrzmail.com";
 
 type SubscribeBody = {
-  plan?: "starter" | "business";
+  plan?: "starter" | "business" | "business-pro";
 };
 
 export async function POST(request: Request) {
@@ -62,7 +62,12 @@ export async function POST(request: Request) {
   });
 
   // Send notification email to admin
-  const planLabel = plan === "business" ? "Business" : "Starter";
+  const planLabels: Record<string, string> = {
+    starter: "Starter",
+    business: "Business",
+    "business-pro": "Business Pro",
+  };
+  const planLabel = planLabels[plan] ?? "Starter";
   const subject = `[QRZMail] New Subscription Request: ${planLabel} — ${user.email}`;
   const text = [
     `New subscription request received.`,

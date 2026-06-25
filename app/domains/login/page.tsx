@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useState, useEffect } from "react";
 
 type State =
   | { type: "idle" }
@@ -19,6 +19,17 @@ export default function DomainLoginPage() {
   };
 
   const [state, setState] = useState<State>({ type: "idle" });
+  const [redirectTo, setRedirectTo] = useState<string | null>(null);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const redirect = params.get("redirect");
+    const plan = params.get("plan");
+    if (redirect) {
+      const url = plan ? `${redirect}?plan=${encodeURIComponent(plan)}` : redirect;
+      setRedirectTo(url);
+    }
+  }, []);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -41,7 +52,7 @@ export default function DomainLoginPage() {
       sessionStorage.setItem("csrfToken", result.csrfToken);
     }
 
-    window.location.href = "/domains";
+    window.location.href = redirectTo ?? "/domains";
   }
 
   return (

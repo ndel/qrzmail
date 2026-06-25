@@ -9,13 +9,76 @@ type State =
   | { type: "error"; message: string }
   | { type: "success"; message: string };
 
+type PlanId = "starter" | "business" | "business-pro";
+
+const PLAN_INFO: Record<PlanId, { name: string; monthly: number; features: string[] }> = {
+  starter: {
+    name: "Starter",
+    monthly: 4.99,
+    features: [
+      "Up to 3 custom domains",
+      "Up to 10 mailboxes",
+      "10 GB storage per mailbox",
+      "Unlimited aliases",
+      "Catch-all & forwarding",
+      "Priority email support",
+    ],
+  },
+  business: {
+    name: "Business",
+    monthly: 12.99,
+    features: [
+      "Up to 10 custom domains",
+      "Up to 25 mailboxes",
+      "25 GB storage per mailbox",
+      "Shared mailboxes",
+      "Catch-all & forwarding",
+      "Priority support",
+      "Migration assistance",
+    ],
+  },
+  "business-pro": {
+    name: "Business Pro",
+    monthly: 29.99,
+    features: [
+      "Unlimited custom domains",
+      "Up to 100 mailboxes",
+      "50 GB storage per mailbox",
+      "Shared mailboxes",
+      "Unlimited aliases",
+      "API access",
+      "Migration assistance",
+      "Priority support",
+    ],
+  },
+};
+
 export default function SubscribePage() {
   const [state, setState] = useState<State>({ type: "idle" });
-  const [selectedPlan, setSelectedPlan] = useState<"starter" | "business">("starter");
+  const [selectedPlan, setSelectedPlan] = useState<PlanId>("starter");
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userSubscription, setUserSubscription] = useState<string | null>(null);
+  const [autoSubmitted, setAutoSubmitted] = useState(false);
 
+  // Read plan from query param and check auth
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const planParam = params.get("plan");
+    const successParam = params.get("success");
+
+    if (planParam && planParam in PLAN_INFO) {
+      setSelectedPlan(planParam as PlanId);
+    }
+
+    // If redirected here after successful direct submission from pricing page
+    if (successParam === "1") {
+      setState({
+        type: "success",
+        message: `Your ${PLAN_INFO[selectedPlan].name} subscription request has been submitted. We'll review it and send an invoice to your email within 1-2 business days.`,
+      });
+      return;
+    }
+
     fetch("/api/account/me")
       .then((r) => (r.ok ? r.json() : { user: null }))
       .then((data) => {
@@ -27,14 +90,36 @@ export default function SubscribePage() {
       .catch(() => {});
   }, []);
 
-  async function handleSubscribe(e: FormEvent) {
-    e.preventDefault();
+  // Auto-submit if user is logged in, on a free plan, and a plan was specified in the URL
+  useEffect(() => {
+    if (
+      !autoSubmitted &&
+      userEmail &&
+      (userSubscription === "free" || userSubscription === null) &&
+      selectedPlan &&
+      state.type === "idle"
+    ) {
+      const params = new URLSearchParams(window.location.search);
+      const planParam = params.get("plan");
+      if (planParam && planParam in PLAN_INFO) {
+        setAutoSubmitted(true);
+        handleSubscribeDirect(planParam as PlanId);
+      }
+    }
+  }, [userEmail, userSubscription, selectedPlan, state.type]);
+
+  async function handleSubscribeDirect(plan: PlanId) {
     setState({ type: "loading" });
+
+    const csrfToken = sessionStorage.getItem("csrfToken") ?? "";
 
     const response = await fetch("/api/subscribe", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ plan: selectedPlan }),
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRF-Token": csrfToken,
+      },
+      body: JSON.stringify({ plan }),
     });
 
     const result = await response.json();
@@ -47,6 +132,11 @@ export default function SubscribePage() {
     setState({ type: "success", message: result.message });
   }
 
+  async function handleSubscribe(e: FormEvent) {
+    e.preventDefault();
+    await handleSubscribeDirect(selectedPlan);
+  }
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -55,6 +145,8 @@ export default function SubscribePage() {
       { "@type": "ListItem", position: 2, name: "Subscribe", item: "https://qrzmail.com/subscribe" },
     ],
   };
+
+  const plan = PLAN_INFO[selectedPlan];
 
   return (
     <div className="form-wrap">
@@ -93,7 +185,7 @@ export default function SubscribePage() {
 
           {!userEmail && (
             <div className="message" style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.25)", color: "#fcd34d" }}>
-              Please <Link href="/domains/login" className="text-link">sign in to your domain account</Link> to subscribe.
+              Please <Link href={`/domains/login?redirect=/subscribe&plan=${selectedPlan}`} className="text-link">sign in to your domain account</Link> to subscribe.
             </div>
           )}
 
@@ -107,86 +199,65 @@ export default function SubscribePage() {
             </div>
           )}
 
+          {state.type === "loading" && autoSubmitted && (
+            <div className="message" style={{ background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)", color: "#60a5fa" }}>
+              Submitting your {plan.name} subscription request...
+            </div>
+          )}
+
           {/* Plan Selection */}
           <div style={{ display: "grid", gap: "16px", marginTop: "24px" }}>
-            {/* Starter Plan */}
-            <label
-              style={{
-                display: "grid",
-                gridTemplateColumns: "auto 1fr",
-                gap: "16px",
-                padding: "20px",
-                border: `2px solid ${selectedPlan === "starter" ? "var(--accent)" : "var(--panel-border)"}`,
-                borderRadius: "14px",
-                background: selectedPlan === "starter" ? "rgba(59,130,246,0.08)" : "var(--panel)",
-                cursor: "pointer",
-                transition: "border-color 0.15s",
-                alignItems: "start",
-              }}
-            >
-              <input
-                type="radio"
-                name="plan"
-                value="starter"
-                checked={selectedPlan === "starter"}
-                onChange={() => setSelectedPlan("starter")}
-                style={{ marginTop: "4px", accentColor: "var(--accent)" }}
-              />
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                  <strong style={{ fontSize: "18px" }}>Starter</strong>
-                  <span style={{ fontSize: "22px", fontWeight: "800", color: "var(--accent-light)" }}>
-                    $9<span style={{ fontSize: "14px", fontWeight: "500", color: "var(--ink-soft)" }}>/mo</span>
-                  </span>
-                </div>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "8px", fontSize: "14px", color: "var(--ink-soft)" }}>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ Up to 25 mailboxes</li>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ 10 GB storage per mailbox</li>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ Unlimited aliases</li>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ Priority email support</li>
-                </ul>
-              </div>
-            </label>
+            {(Object.keys(PLAN_INFO) as PlanId[]).map((planId) => {
+              const p = PLAN_INFO[planId];
+              const isSelected = selectedPlan === planId;
+              const borderColor = isSelected
+                ? planId === "business" ? "var(--green)" : "var(--accent)"
+                : "var(--panel-border)";
+              const bgColor = isSelected
+                ? planId === "business" ? "rgba(34,197,94,0.08)" : "rgba(59,130,246,0.08)"
+                : "var(--panel)";
+              const priceColor = planId === "business" ? "var(--green)" : "var(--accent-light)";
 
-            {/* Business Plan */}
-            <label
-              style={{
-                display: "grid",
-                gridTemplateColumns: "auto 1fr",
-                gap: "16px",
-                padding: "20px",
-                border: `2px solid ${selectedPlan === "business" ? "var(--green)" : "var(--panel-border)"}`,
-                borderRadius: "14px",
-                background: selectedPlan === "business" ? "rgba(34,197,94,0.08)" : "var(--panel)",
-                cursor: "pointer",
-                transition: "border-color 0.15s",
-                alignItems: "start",
-              }}
-            >
-              <input
-                type="radio"
-                name="plan"
-                value="business"
-                checked={selectedPlan === "business"}
-                onChange={() => setSelectedPlan("business")}
-                style={{ marginTop: "4px", accentColor: "var(--green)" }}
-              />
-              <div>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-                  <strong style={{ fontSize: "18px" }}>Business</strong>
-                  <span style={{ fontSize: "22px", fontWeight: "800", color: "var(--green)" }}>
-                    $29<span style={{ fontSize: "14px", fontWeight: "500", color: "var(--ink-soft)" }}>/mo</span>
-                  </span>
-                </div>
-                <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "8px", fontSize: "14px", color: "var(--ink-soft)" }}>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ Unlimited mailboxes</li>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ 25 GB storage per mailbox</li>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ Unlimited aliases</li>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ Priority email & phone support</li>
-                  <li style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ Custom DKIM/DMARC consultation</li>
-                </ul>
-              </div>
-            </label>
+              return (
+                <label
+                  key={planId}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "auto 1fr",
+                    gap: "16px",
+                    padding: "20px",
+                    border: `2px solid ${borderColor}`,
+                    borderRadius: "14px",
+                    background: bgColor,
+                    cursor: "pointer",
+                    transition: "border-color 0.15s",
+                    alignItems: "start",
+                  }}
+                >
+                  <input
+                    type="radio"
+                    name="plan"
+                    value={planId}
+                    checked={isSelected}
+                    onChange={() => setSelectedPlan(planId)}
+                    style={{ marginTop: "4px", accentColor: planId === "business" ? "var(--green)" : "var(--accent)" }}
+                  />
+                  <div>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                      <strong style={{ fontSize: "18px" }}>{p.name}</strong>
+                      <span style={{ fontSize: "22px", fontWeight: "800", color: priceColor }}>
+                        ${p.monthly.toFixed(2)}<span style={{ fontSize: "14px", fontWeight: "500", color: "var(--ink-soft)" }}>/mo</span>
+                      </span>
+                    </div>
+                    <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: "8px", fontSize: "14px", color: "var(--ink-soft)" }}>
+                      {p.features.map((f) => (
+                        <li key={f} style={{ display: "flex", gap: "8px", alignItems: "center" }}>✓ {f}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </label>
+              );
+            })}
           </div>
 
           <div className="fine-print" style={{ marginTop: "16px", lineHeight: "1.5" }}>
@@ -206,7 +277,7 @@ export default function SubscribePage() {
                 ? "Already on Paid Plan"
                 : userSubscription === "pending"
                   ? "Request Pending"
-                  : "Request Subscription →"}
+                  : `Subscribe to ${plan.name} →`}
           </button>
 
           <Link href="/domains" className="button full" style={{ marginTop: "12px" }}>
