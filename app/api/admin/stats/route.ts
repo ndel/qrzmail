@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
 import db from "@/lib/db";
+import {
+  getTotalStoredMessages,
+  getMailboxQuotas,
+  getDailySaslCounts,
+  getSaslLogSummary,
+} from "@/lib/mailcow-db";
 
 export const runtime = "nodejs";
 
@@ -9,6 +15,14 @@ export const runtime = "nodejs";
  *
  * Superadmin-only endpoint that returns aggregated email send/receive stats
  * grouped by day for the requested time range.
+ *
+ * Data sources:
+ *   1. Local email_log table — populated by app-level logging (e.g. when
+ *      the QRZMail app sends password-reset emails via nodemailer).
+ *   2. Mailcow MySQL quota2 — total messages & bytes stored per mailbox.
+ *      This represents cumulative received mail stored on the server.
+ *   3. Mailcow MySQL sasl_log — user authentication events (IMAP, SOGO,
+ *      webmail logins). Used as a proxy for user activity.
  */
 export async function GET(req: NextRequest) {
   const user = await getCurrentUser();
@@ -34,7 +48,6 @@ export async function GET(req: NextRequest) {
       break;
     }
     case "week": {
-      // Last 7 days (including today)
       fromDate = new Date(now);
       fromDate.setDate(fromDate.getDate() - 6);
       fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
@@ -44,7 +57,6 @@ export async function GET(req: NextRequest) {
       break;
     }
     case "month": {
-      // Last 30 days
       fromDate = new Date(now);
       fromDate.setDate(fromDate.getDate() - 29);
       fromDate = new Date(fromDate.getFullYear(), fromDate.getMonth(), fromDate.getDate());
@@ -81,8 +93,10 @@ export async function GET(req: NextRequest) {
   const fromIso = fromDate.toISOString();
   const toIso = toDate.toISOString();
 
-  // Query: group by day, direction
-  const rows = db
+  // ── 1. Local email_log table ─────────────────────────────────────
+  // This is populated when the QRZMail app itself sends emails
+  // (e.g. password reset emails via nodemailer).
+  const localRows = db
     .prepare(
       `
       SELECT
@@ -103,7 +117,25 @@ export async function GET(req: NextRequest) {
     total_size: number;
   }[];
 
-  // Build a map: day -> { sent, received, total }
+  // ── 2. Mailcow MySQL quota2 (total stored messages per mailbox) ──
+  const mailboxQuotas = await getMailboxQuotas();
+  const totalStored = mailboxQuotas.reduce(
+    (acc, q) => ({
+      messages: acc.messages + q.messages,
+      bytes: acc.bytes + q.bytes,
+    }),
+    { messages: 0, bytes: 0 },
+  );
+
+  // Count mailboxes that have at least one message
+  const activeMailboxes = mailboxQuotas.filter((q) => q.messages > 0).length;
+  const totalMailboxes = mailboxQuotas.length;
+
+  // ── 3. Mailcow MySQL sasl_log (daily auth events) ────────────────
+  const saslDaily = await getDailySaslCounts(fromIso, toIso);
+  const saslSummary = await getSaslLogSummary(fromIso, toIso);
+
+  // Build a map: day -> { sent, received, total, sentSize, receivedSize }
   const dayMap = new Map<
     string,
     { sent: number; received: number; total: number; sentSize: number; receivedSize: number }
@@ -117,7 +149,8 @@ export async function GET(req: NextRequest) {
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  for (const row of rows) {
+  // Merge local email_log data
+  for (const row of localRows) {
     const entry = dayMap.get(row.day);
     if (entry) {
       if (row.direction === "sent") {
@@ -131,14 +164,23 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // Merge Mailcow sasl_log data as a secondary "activity" metric
+  // (shown separately in the UI, not mixed with email_log counts)
+  const saslDayMap = new Map<string, number>();
+  for (const row of saslDaily) {
+    saslDayMap.set(row.day, row.count);
+  }
+
   // Build daily series
   const daily = Array.from(dayMap.entries()).map(([day, counts]) => ({
     day,
     ...counts,
+    // Include sasl events separately (user logins, not email sends)
+    logins: saslDayMap.get(day) ?? 0,
   }));
 
-  // Totals
-  const totals = db
+  // ── Totals from local email_log ──────────────────────────────────
+  const localTotals = db
     .prepare(
       `
       SELECT
@@ -162,9 +204,16 @@ export async function GET(req: NextRequest) {
     totalSize: 0,
     sentSize: 0,
     receivedSize: 0,
+    // Mailcow-wide storage stats (all mailboxes, all time)
+    totalStoredMessages: totalStored.messages,
+    totalStoredBytes: totalStored.bytes,
+    activeMailboxes,
+    totalMailboxes,
+    // SASL events in this range (user authentication activity)
+    totalLogins: saslSummary.total,
   };
 
-  for (const row of totals) {
+  for (const row of localTotals) {
     if (row.direction === "sent") {
       summary.totalSent = row.count;
       summary.sentSize = row.total_size;
@@ -181,5 +230,11 @@ export async function GET(req: NextRequest) {
     to: toIso,
     summary,
     daily,
+    // Per-mailbox breakdown (for reference)
+    mailboxes: mailboxQuotas.map((q) => ({
+      email: q.username,
+      storedMessages: q.messages,
+      storedBytes: q.bytes,
+    })),
   });
 }

@@ -25,6 +25,13 @@ type DailyStat = {
   total: number;
   sentSize: number;
   receivedSize: number;
+  logins: number;
+};
+
+type MailboxStat = {
+  email: string;
+  storedMessages: number;
+  storedBytes: number;
 };
 
 type StatsResponse = {
@@ -37,8 +44,14 @@ type StatsResponse = {
     totalSize: number;
     sentSize: number;
     receivedSize: number;
+    totalStoredMessages: number;
+    totalStoredBytes: number;
+    activeMailboxes: number;
+    totalMailboxes: number;
+    totalLogins: number;
   };
   daily: DailyStat[];
+  mailboxes: MailboxStat[];
 };
 
 // ── Helpers ──────────────────────────────────────────────
@@ -106,6 +119,7 @@ export default function AdminEmailStats() {
   const [range, setRange] = useState<RangeKey>("week");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
+  const [showMailboxes, setShowMailboxes] = useState(false);
 
   const fetchStats = useCallback(
     async (r: RangeKey, from?: string, to?: string) => {
@@ -239,10 +253,7 @@ export default function AdminEmailStats() {
 
       {/* Error */}
       {error && (
-        <div
-          className="dash-message error"
-          style={{ margin: 16 }}
-        >
+        <div className="dash-message error" style={{ margin: 16 }}>
           <span>⚠</span> {error}
           <button className="button small ghost" onClick={() => fetchStats(range)}>
             Retry
@@ -259,7 +270,7 @@ export default function AdminEmailStats() {
 
       {stats && (
         <>
-          {/* Summary cards */}
+          {/* Summary cards — row 1: traffic */}
           <div
             style={{
               display: "grid",
@@ -271,12 +282,47 @@ export default function AdminEmailStats() {
           >
             <SummaryCard label="Sent" value={stats.summary.totalSent.toLocaleString()} color="var(--accent-light)" />
             <SummaryCard label="Received" value={stats.summary.totalReceived.toLocaleString()} color="var(--green)" />
-            <SummaryCard label="Total" value={(stats.summary.totalSent + stats.summary.totalReceived).toLocaleString()} color="var(--ink)" />
+            <SummaryCard
+              label="Total"
+              value={(stats.summary.totalSent + stats.summary.totalReceived).toLocaleString()}
+              color="var(--ink)"
+            />
             <SummaryCard label="Data Transferred" value={formatBytes(stats.summary.totalSize)} color="var(--ink-soft)" />
           </div>
 
+          {/* Summary cards — row 2: Mailcow storage stats */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(4, 1fr)",
+              gap: 12,
+              padding: "0 22px 16px",
+            }}
+          >
+            <SummaryCard
+              label="Messages Stored"
+              value={stats.summary.totalStoredMessages.toLocaleString()}
+              color="var(--accent)"
+            />
+            <SummaryCard
+              label="Storage Used"
+              value={formatBytes(stats.summary.totalStoredBytes)}
+              color="var(--ink)"
+            />
+            <SummaryCard
+              label="Active Mailboxes"
+              value={`${stats.summary.activeMailboxes} / ${stats.summary.totalMailboxes}`}
+              color="var(--green)"
+            />
+            <SummaryCard
+              label="User Logins"
+              value={stats.summary.totalLogins.toLocaleString()}
+              color="var(--ink-soft)"
+            />
+          </div>
+
           {/* Chart */}
-          <div style={{ padding: "16px 22px 22px" }}>
+          <div style={{ padding: "16px 22px 22px", borderTop: "1px solid var(--line)" }}>
             {stats.daily.length === 0 ? (
               <div
                 style={{
@@ -306,9 +352,7 @@ export default function AdminEmailStats() {
                     allowDecimals={false}
                   />
                   <Tooltip content={<ChartTooltip />} />
-                  <Legend
-                    wrapperStyle={{ fontSize: 12, color: "var(--ink-soft)" }}
-                  />
+                  <Legend wrapperStyle={{ fontSize: 12, color: "var(--ink-soft)" }} />
                   <Bar
                     dataKey="sent"
                     name="Sent"
@@ -336,6 +380,57 @@ export default function AdminEmailStats() {
               </ResponsiveContainer>
             )}
           </div>
+
+          {/* Per-mailbox breakdown (collapsible) */}
+          {stats.mailboxes && stats.mailboxes.length > 0 && (
+            <div style={{ borderTop: "1px solid var(--line)", padding: "12px 22px" }}>
+              <button
+                onClick={() => setShowMailboxes(!showMailboxes)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  fontSize: 13,
+                  fontWeight: 600,
+                  color: "var(--ink-soft)",
+                  padding: "4px 0",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                }}
+              >
+                {showMailboxes ? "▼" : "▶"} Per-Mailbox Storage ({stats.mailboxes.length} mailboxes)
+              </button>
+              {showMailboxes && (
+                <div style={{ marginTop: 8, maxHeight: 240, overflowY: "auto" }}>
+                  <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
+                    <thead>
+                      <tr style={{ color: "var(--ink-soft)", borderBottom: "1px solid var(--line)" }}>
+                        <th style={{ textAlign: "left", padding: "6px 8px", fontWeight: 600 }}>Mailbox</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px", fontWeight: 600 }}>Messages</th>
+                        <th style={{ textAlign: "right", padding: "6px 8px", fontWeight: 600 }}>Storage</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {stats.mailboxes
+                        .filter((m) => m.storedMessages > 0)
+                        .map((m) => (
+                          <tr key={m.email} style={{ borderBottom: "1px solid var(--line)" }}>
+                            <td style={{ padding: "6px 8px", color: "var(--ink)" }}>{m.email}</td>
+                            <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--ink)" }}>
+                              {m.storedMessages.toLocaleString()}
+                            </td>
+                            <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--ink-soft)" }}>
+                              {formatBytes(m.storedBytes)}
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>
