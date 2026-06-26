@@ -96,12 +96,27 @@ db.exec(`
     PRIMARY KEY (key, window_start)
   );
 
+  CREATE TABLE IF NOT EXISTS email_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    direction TEXT NOT NULL CHECK(direction IN ('sent','received')),
+    mailbox_id TEXT NOT NULL REFERENCES mailboxes(id) ON DELETE CASCADE,
+    sender TEXT NOT NULL,
+    recipient TEXT NOT NULL,
+    subject TEXT,
+    size INTEGER DEFAULT 0,
+    status TEXT NOT NULL DEFAULT 'delivered' CHECK(status IN ('delivered','failed','bounced')),
+    created_at TEXT NOT NULL
+  );
+
   CREATE INDEX IF NOT EXISTS idx_recovery_codes_email ON recovery_codes(email);
   CREATE INDEX IF NOT EXISTS idx_reset_tokens_email ON reset_tokens(email);
   CREATE INDEX IF NOT EXISTS idx_domains_owner_id ON domains(owner_id);
   CREATE INDEX IF NOT EXISTS idx_mailboxes_domain_id ON mailboxes(domain_id);
   CREATE INDEX IF NOT EXISTS idx_mailboxes_owner_id ON mailboxes(owner_id);
   CREATE INDEX IF NOT EXISTS idx_aliases_domain_id ON aliases(domain_id);
+  CREATE INDEX IF NOT EXISTS idx_email_log_created_at ON email_log(created_at);
+  CREATE INDEX IF NOT EXISTS idx_email_log_direction ON email_log(direction);
+  CREATE INDEX IF NOT EXISTS idx_email_log_mailbox_id ON email_log(mailbox_id);
 `);
 
 export default db;

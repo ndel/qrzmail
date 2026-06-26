@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import AdminEmailStats from "@/app/components/admin-email-stats";
 
 // ── Types ────────────────────────────────────────────────
 
@@ -197,6 +198,9 @@ export default function AdminPage() {
 
       {data && (
         <>
+          {/* Email Traffic Stats */}
+          <AdminEmailStats />
+
           {/* Stats */}
           <section className="stats-grid">
             {stats.map((s) => (
