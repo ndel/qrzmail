@@ -33,15 +33,14 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # doesn't include it because it's imported dynamically via mysql2/promise.
 # Copy it and its dependencies explicitly from the builder stage.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/mysql2 ./node_modules/mysql2
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/aws-ssl-profiles ./node_modules/aws-ssl-profiles
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/denque ./node_modules/denque
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/generate-function ./node_modules/generate-function
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/iconv-lite ./node_modules/iconv-lite
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/long ./node_modules/long
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/lru-cache ./node_modules/lru-cache
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/lru.min ./node_modules/lru.min
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/named-placeholders ./node_modules/named-placeholders
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/seq-queue ./node_modules/seq-queue
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/sqlstring ./node_modules/sqlstring
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/sql-escaper ./node_modules/sql-escaper
 
 USER nextjs
 EXPOSE 3000
