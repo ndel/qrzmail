@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCurrentUser } from "@/lib/auth";
-import db from "@/lib/db";
 import {
-  getTotalStoredMessages,
   getMailboxQuotas,
   getDailySaslCounts,
   getSaslLogSummary,
 } from "@/lib/mailcow-db";
+import { getPostfixLogSummary } from "@/lib/postfix-logs";
 
 export const runtime = "nodejs";
 
@@ -17,8 +16,11 @@ export const runtime = "nodejs";
  * grouped by day for the requested time range.
  *
  * Data sources:
- *   1. Local email_log table — populated by app-level logging (e.g. when
- *      the QRZMail app sends password-reset emails via nodemailer).
+ *   1. Postfix Docker container logs — primary source for sent/received email
+ *      counts. Parsed from the Docker JSON log file mounted at
+ *      /var/lib/docker/containers. Sent = outbound delivery via postfix/smtp
+ *      to external servers. Received = inbound delivery via postfix/lmtp to
+ *      local Dovecot mailboxes.
  *   2. Mailcow MySQL quota2 — total messages & bytes stored per mailbox.
  *      This represents cumulative received mail stored on the server.
  *   3. Mailcow MySQL sasl_log — user authentication events (IMAP, SOGO,
@@ -93,29 +95,12 @@ export async function GET(req: NextRequest) {
   const fromIso = fromDate.toISOString();
   const toIso = toDate.toISOString();
 
-  // ── 1. Local email_log table ─────────────────────────────────────
-  // This is populated when the QRZMail app itself sends emails
-  // (e.g. password reset emails via nodemailer).
-  const localRows = db
-    .prepare(
-      `
-      SELECT
-        date(created_at) AS day,
-        direction,
-        COUNT(*) AS count,
-        COALESCE(SUM(size), 0) AS total_size
-      FROM email_log
-      WHERE created_at >= ? AND created_at < ?
-      GROUP BY date(created_at), direction
-      ORDER BY day ASC
-      `,
-    )
-    .all(fromIso, toIso) as {
-    day: string;
-    direction: "sent" | "received";
-    count: number;
-    total_size: number;
-  }[];
+  // ── 1. Postfix Docker logs (primary sent/received data) ──────────
+  // Parse the Postfix container's Docker JSON log file for real mail
+  // traffic events. Sent = outbound delivery to external servers via
+  // postfix/smtp. Received = inbound delivery to local Dovecot mailboxes
+  // via postfix/lmtp.
+  const postfixSummary = await getPostfixLogSummary(fromDate, toDate);
 
   // ── 2. Mailcow MySQL quota2 (total stored messages per mailbox) ──
   const mailboxQuotas = await getMailboxQuotas();
@@ -135,75 +120,28 @@ export async function GET(req: NextRequest) {
   const saslDaily = await getDailySaslCounts(fromIso, toIso);
   const saslSummary = await getSaslLogSummary(fromIso, toIso);
 
-  // Build a map: day -> { sent, received, total, sentSize, receivedSize }
-  const dayMap = new Map<
-    string,
-    { sent: number; received: number; total: number; sentSize: number; receivedSize: number }
-  >();
-
-  // Fill in all days in range so there are no gaps
-  const cursor = new Date(fromDate);
-  while (cursor < toDate) {
-    const key = cursor.toISOString().slice(0, 10);
-    dayMap.set(key, { sent: 0, received: 0, total: 0, sentSize: 0, receivedSize: 0 });
-    cursor.setDate(cursor.getDate() + 1);
-  }
-
-  // Merge local email_log data
-  for (const row of localRows) {
-    const entry = dayMap.get(row.day);
-    if (entry) {
-      if (row.direction === "sent") {
-        entry.sent = row.count;
-        entry.sentSize = row.total_size;
-      } else {
-        entry.received = row.count;
-        entry.receivedSize = row.total_size;
-      }
-      entry.total = entry.sent + entry.received;
-    }
-  }
-
-  // Merge Mailcow sasl_log data as a secondary "activity" metric
-  // (shown separately in the UI, not mixed with email_log counts)
+  // Build daily series from Postfix data, enriched with sasl logins
   const saslDayMap = new Map<string, number>();
   for (const row of saslDaily) {
     saslDayMap.set(row.day, row.count);
   }
 
-  // Build daily series
-  const daily = Array.from(dayMap.entries()).map(([day, counts]) => ({
-    day,
-    ...counts,
-    // Include sasl events separately (user logins, not email sends)
-    logins: saslDayMap.get(day) ?? 0,
+  const daily = postfixSummary.daily.map((d) => ({
+    day: d.day,
+    sent: d.sent,
+    received: d.received,
+    total: d.sent + d.received,
+    sentSize: d.sentSize,
+    receivedSize: d.receivedSize,
+    logins: saslDayMap.get(d.day) ?? 0,
   }));
 
-  // ── Totals from local email_log ──────────────────────────────────
-  const localTotals = db
-    .prepare(
-      `
-      SELECT
-        direction,
-        COUNT(*) AS count,
-        COALESCE(SUM(size), 0) AS total_size
-      FROM email_log
-      WHERE created_at >= ? AND created_at < ?
-      GROUP BY direction
-      `,
-    )
-    .all(fromIso, toIso) as {
-    direction: "sent" | "received";
-    count: number;
-    total_size: number;
-  }[];
-
   const summary = {
-    totalSent: 0,
-    totalReceived: 0,
-    totalSize: 0,
-    sentSize: 0,
-    receivedSize: 0,
+    totalSent: postfixSummary.sent,
+    totalReceived: postfixSummary.received,
+    totalSize: postfixSummary.sentSize + postfixSummary.receivedSize,
+    sentSize: postfixSummary.sentSize,
+    receivedSize: postfixSummary.receivedSize,
     // Mailcow-wide storage stats (all mailboxes, all time)
     totalStoredMessages: totalStored.messages,
     totalStoredBytes: totalStored.bytes,
@@ -212,17 +150,6 @@ export async function GET(req: NextRequest) {
     // SASL events in this range (user authentication activity)
     totalLogins: saslSummary.total,
   };
-
-  for (const row of localTotals) {
-    if (row.direction === "sent") {
-      summary.totalSent = row.count;
-      summary.sentSize = row.total_size;
-    } else {
-      summary.totalReceived = row.count;
-      summary.receivedSize = row.total_size;
-    }
-  }
-  summary.totalSize = summary.sentSize + summary.receivedSize;
 
   return NextResponse.json({
     range,

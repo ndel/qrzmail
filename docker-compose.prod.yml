@@ -44,6 +44,8 @@ services:
       MAILCOW_DB_NAME: "mailcow"
     volumes:
       - ./data:/data
+      # Mount Docker container logs so we can parse Postfix mail traffic stats
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
     networks:
       - mailcow-network
 
