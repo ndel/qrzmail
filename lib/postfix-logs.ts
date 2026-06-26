@@ -106,38 +106,53 @@ async function resolvePostfixLogPath(): Promise<string | null> {
 // ── Regex patterns ───────────────────────────────────────
 
 /**
- * Sent mail pattern: postfix/smtp delivering to external server
- * Example:
- *   postfix/smtp[3582]: 01D9D28D733: to=<nabin@curllabs.com>, orig_to=<9n2nk@qrzmail.com>, relay=mail.curllabs.com[...]:25, ... status=sent (250 2.0.0 Ok: queued as ...)
- *
- * We match:
- *   - to=<recipient>
- *   - orig_to=<sender>  (the actual authenticated sender)
- *   - status=sent
+ * Queue ID extraction: extract the queue ID from any Postfix log line.
+ * Used to correlate qmgr size entries with delivery events.
  */
-const SENT_PATTERN =
-  /postfix\/smtp\[\d+\]:\s+\S+:\s+to=<([^>]+)>,\s+orig_to=<([^>]+)>.*?status=sent\s/;
+const QUEUE_ID_RE = /postfix\/\w+\[\d+\]:\s+(\S+):/;
 
 /**
- * Received mail pattern: postfix/lmtp delivering to Dovecot (local mailbox)
+ * Sent mail pattern: postfix/smtp delivering to external server.
+ *
+ * Examples:
+ *   With orig_to (alias/forwarding):
+ *     postfix/smtp[3582]: 01D9D28D733: to=<nabin@curllabs.com>, orig_to=<9n2nk@qrzmail.com>, relay=..., status=sent (250 ...)
+ *   Without orig_to (direct send):
+ *     postfix/smtp[3582]: 01D9D28D733: to=<nabin@curllabs.com>, relay=..., status=sent (250 ...)
+ *
+ * Captures:
+ *   [1] queue ID
+ *   [2] recipient (to)
+ *   [3] sender (orig_to) — optional, may be undefined
+ */
+const SENT_RE =
+  /postfix\/smtp\[\d+\]:\s+(\S+):\s+to=<([^>]+)>(?:,\s+orig_to=<([^>]+)>)??.*?status=sent\s/;
+
+/**
+ * Received mail pattern: postfix/lmtp delivering to Dovecot (local mailbox).
+ *
  * Example:
  *   postfix/lmtp[30948]: 90A4B28E51A: to=<rita@qrzmail.com>, relay=dovecot[...]:24, ... status=sent (250 2.0.0 <rita@qrzmail.com> ... Saved)
  *
- * We match:
- *   - to=<recipient> (the local mailbox)
- *   - Saved (indicates successful delivery to Dovecot)
+ * Captures:
+ *   [1] queue ID
+ *   [2] recipient (to)
  */
-const RECEIVED_PATTERN =
-  /postfix\/lmtp\[\d+\]:\s+\S+:\s+to=<([^>]+)>.*?Saved/;
+const RECEIVED_RE =
+  /postfix\/lmtp\[\d+\]:\s+(\S+):\s+to=<([^>]+)>.*?Saved/;
 
 /**
- * Size pattern: extract size from qmgr entries
+ * Size pattern: extract size from qmgr entries.
+ *
  * Example:
  *   postfix/qmgr[350]: 7F88428D757: from=<9n2nk@qrzmail.com>, size=917, nrcpt=1 (queue active)
  *
- * We match the queue ID and size to correlate with delivery events.
+ * Captures:
+ *   [1] queue ID
+ *   [2] sender (from)
+ *   [3] size
  */
-const QMGR_SIZE_PATTERN =
+const QMGR_SIZE_RE =
   /postfix\/qmgr\[\d+\]:\s+(\S+):\s+from=<([^>]*)>,\s+size=(\d+)/;
 
 // ── Log Parser ───────────────────────────────────────────
@@ -187,31 +202,36 @@ export async function parsePostfixLogs(
       const day = eventDate.toISOString().slice(0, 10);
 
       // Collect queue sizes from qmgr entries
-      const qmgrMatch = logMsg.match(QMGR_SIZE_PATTERN);
+      const qmgrMatch = logMsg.match(QMGR_SIZE_RE);
       if (qmgrMatch) {
         const [, queueId, from, sizeStr] = qmgrMatch;
         queueSizes.set(queueId, { from: from || "unknown", size: parseInt(sizeStr, 10) || 0 });
       }
 
       // Check for sent mail (external delivery via postfix/smtp)
-      const sentMatch = logMsg.match(SENT_PATTERN);
+      const sentMatch = logMsg.match(SENT_RE);
       if (sentMatch) {
-        const [, to, from] = sentMatch;
-        // Try to find the size from qmgr entries (look up by queue ID pattern)
-        // We'll use a simpler approach: extract size from the log line if present
-        const sizeMatch = logMsg.match(/size=(\d+)/);
-        const size = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
+        const [, queueId, to, origTo] = sentMatch;
+        // Use orig_to as sender if available, otherwise look up from qmgr
+        let from = origTo ?? "";
+        if (!from) {
+          const qEntry = queueSizes.get(queueId);
+          if (qEntry) from = qEntry.from;
+        }
+        // Get size from qmgr cache or from the log line
+        const qEntry = queueSizes.get(queueId);
+        const size = qEntry?.size ?? 0;
         events.push({ day, direction: "sent", from, to, size });
         continue;
       }
 
       // Check for received mail (local delivery via postfix/lmtp to Dovecot)
-      const receivedMatch = logMsg.match(RECEIVED_PATTERN);
+      const receivedMatch = logMsg.match(RECEIVED_RE);
       if (receivedMatch) {
-        const [, to] = receivedMatch;
-        // Extract size from the log line if present
-        const sizeMatch = logMsg.match(/size=(\d+)/);
-        const size = sizeMatch ? parseInt(sizeMatch[1], 10) : 0;
+        const [, queueId, to] = receivedMatch;
+        // Get size from qmgr cache
+        const qEntry = queueSizes.get(queueId);
+        const size = qEntry?.size ?? 0;
         // For received mail, the "to" is the local recipient
         events.push({ day, direction: "received", from: "", to, size });
         continue;

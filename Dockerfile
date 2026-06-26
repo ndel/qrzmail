@@ -44,7 +44,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/node_modules/named-placeholders .
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/safer-buffer ./node_modules/safer-buffer
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/sql-escaper ./node_modules/sql-escaper
 
-USER nextjs
+# Run as root so we can read /var/lib/docker/containers/ (Postfix logs) mounted from the host.
+# The data directory /data is chown'd to nextjs:nodejs at startup for correct file ownership.
+USER root
 EXPOSE 3000
 
-CMD ["sh", "-c", "chown -R nextjs:nodejs /data 2>/dev/null; node server.js"]
+CMD ["sh", "-c", "chown -R nextjs:nodejs /data 2>/dev/null; exec node server.js"]
