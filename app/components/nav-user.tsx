@@ -37,6 +37,8 @@ export default function NavUser() {
   if (user) {
     return (
       <>
+        <Link href="/pricing">Pricing</Link>
+        <Link href="/faqs">FAQs</Link>
         <Link href="/domains/login">Domain panel</Link>
         {user.subscription === "free" && (
           <Link href="/subscribe" className="cta" style={{ fontSize: "13px", padding: "6px 14px" }}>
@@ -53,6 +55,8 @@ export default function NavUser() {
 
   return (
     <>
+      <Link href="/pricing">Pricing</Link>
+      <Link href="/faqs">FAQs</Link>
       <Link href="/domains/login">Domain panel</Link>
       <Link href="/signup" className="cta">
         Sign up free

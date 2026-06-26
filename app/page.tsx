@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import PricingSection from "./components/pricing-section";
 
 export const metadata: Metadata = {
   title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
@@ -191,9 +190,6 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* ── Pricing / Plans section ─────────────────────────── */}
-      <PricingSection />
 
     </div>
   );

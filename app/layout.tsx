@@ -179,6 +179,7 @@ export default function RootLayout({
                 &copy; {new Date().getFullYear()} QRZMail. All rights reserved.
               </p>
               <div className="footer-links">
+                <Link href="/faqs">FAQs</Link>
                 <Link href="/privacy">Privacy Policy</Link>
                 <Link href="/terms">Terms of Service</Link>
               </div>

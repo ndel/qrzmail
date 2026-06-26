@@ -73,6 +73,39 @@ async function resolvePostfixLogPath(): Promise<string | null> {
   try {
     const entries = await readdir(DOCKER_CONTAINERS_DIR, { withFileTypes: true });
 
+    // Prefer Docker metadata over log content. Several mailcow containers mention
+    // "postfix" in their logs, but only the real container has this name.
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      const containerDir = `${DOCKER_CONTAINERS_DIR}/${entry.name}`;
+      const logFile = `${containerDir}/${entry.name}-json.log`;
+      const configFile = `${containerDir}/config.v2.json`;
+
+      if (!existsSync(logFile)) continue;
+
+      if (!existsSync(configFile)) continue;
+
+      try {
+        const config = JSON.parse(await readFile(configFile, "utf-8")) as {
+          Name?: string;
+          Config?: { Image?: string };
+        };
+        const name = config.Name ?? "";
+        const image = config.Config?.Image ?? "";
+        const isPostfixContainer =
+          /(^|[-_/])postfix-mailcow(-|_|$)/i.test(name) ||
+          /(^|[-_/])postfix-mailcow(-|_|$)/i.test(image);
+
+        if (isPostfixContainer && !/tlspol/i.test(name) && !/tlspol/i.test(image)) {
+          _resolvedLogPath = logFile;
+          console.log(`[postfix-logs] Resolved Postfix log: ${logFile}`);
+          return logFile;
+        }
+      } catch {
+        // Fall through to content-based detection below.
+      }
+    }
+
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
       const containerDir = `${DOCKER_CONTAINERS_DIR}/${entry.name}`;
@@ -80,12 +113,10 @@ async function resolvePostfixLogPath(): Promise<string | null> {
 
       if (!existsSync(logFile)) continue;
 
-      // Read the first few KB to check if this is the Postfix container
-      // Postfix containers have "postfix" in their syslog-ng or supervisor output
-      const fd = await readFile(logFile, { encoding: "utf-8", flag: "r" });
-      const header = fd.slice(0, 4096);
-
-      if (header.includes("postfix") || header.includes("Postfix") || header.includes("POSTFIX")) {
+      // Fallback: look for actual Postfix delivery/qmgr log lines, not just the
+      // word "postfix", which also appears in watchdog and application logs.
+      const sample = await readFile(logFile, { encoding: "utf-8", flag: "r" });
+      if (/postfix\/(?:smtp|lmtp|qmgr|smtpd)\[\d+\]:/.test(sample)) {
         _resolvedLogPath = logFile;
         console.log(`[postfix-logs] Resolved Postfix log: ${logFile}`);
         return logFile;
