@@ -10,6 +10,8 @@ const nextConfig: NextConfig = {
   basePath: "/marketing",
   // Allow the app to be served under a sub-path
   assetPrefix: "/marketing",
+  // Force new build ID to bust browser cache
+  generateBuildId: () => "v2",
 };
 
 export default nextConfig;
