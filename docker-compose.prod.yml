@@ -2,6 +2,8 @@ services:
   qrzmail-web:
     build:
       context: .
+      args:
+        SESSION_SECRET: "${SESSION_SECRET}"
     container_name: qrzmail-web
     restart: unless-stopped
     environment:
