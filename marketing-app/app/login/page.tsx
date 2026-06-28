@@ -41,6 +41,34 @@ export default function LoginPage() {
     }
   };
 
+  const handleEmailInvalid = (e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    if (input.validity.patternMismatch || input.validity.typeMismatch) {
+      input.setCustomValidity("Please enter a valid email address (e.g., user@example.com)");
+    } else if (input.validity.valueMissing) {
+      input.setCustomValidity("Email is required");
+    }
+  };
+
+  const handlePasswordInvalid = (e: React.FormEvent<HTMLInputElement>) => {
+    const input = e.currentTarget;
+    if (input.validity.tooShort) {
+      input.setCustomValidity("Password must be at least 6 characters");
+    } else if (input.validity.valueMissing) {
+      input.setCustomValidity("Password is required");
+    }
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+    e.currentTarget.setCustomValidity(""); // Clear custom validity on change
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPassword(e.target.value);
+    e.currentTarget.setCustomValidity(""); // Clear custom validity on change
+  };
+
   return (
     <div className="login-page">
       <div className="login-card">
@@ -54,14 +82,22 @@ export default function LoginPage() {
 
         {error && <div className="login-error">{error}</div>}
 
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" noValidate>
           {isRegister && (
             <div className="form-group">
               <label>Name</label>
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => {
+                  setName(e.target.value);
+                  e.currentTarget.setCustomValidity("");
+                }}
+                onInvalid={(e) => {
+                  if (e.currentTarget.validity.valueMissing) {
+                    e.currentTarget.setCustomValidity("Name is required");
+                  }
+                }}
                 placeholder="Your name"
                 required
               />
@@ -71,10 +107,14 @@ export default function LoginPage() {
           <div className="form-group">
             <label>Email</label>
             <input
-              type="email"
+              type="text"
+              inputMode="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
+              onInvalid={handleEmailInvalid}
               placeholder="you@example.com"
+              pattern="[^\s@]+@[^\s@]+\.[^\s@]+"
+              title="Please enter a valid email address (e.g., user@example.com)"
               required
             />
           </div>
@@ -84,7 +124,8 @@ export default function LoginPage() {
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={handlePasswordChange}
+              onInvalid={handlePasswordInvalid}
               placeholder={isRegister ? "At least 6 characters" : "Your password"}
               required
               minLength={isRegister ? 6 : 1}
