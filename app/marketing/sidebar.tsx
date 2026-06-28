@@ -29,8 +29,15 @@ export default function Sidebar() {
     fetch("/api/account/me")
       .then((r) => r.json())
       .then((data) => {
-        if (data?.id) setUser(data);
-        else router.push("/domains/login");
+        if (data?.user?.email) {
+          setUser({
+            id: data.user.email,
+            email: data.user.email,
+            name: data.user.name || "",
+          });
+        } else {
+          router.push("/domains/login");
+        }
       })
       .catch(() => router.push("/domains/login"));
   }, [router]);
