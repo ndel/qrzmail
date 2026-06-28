@@ -30,9 +30,9 @@ export default function Sidebar() {
       .then((r) => r.json())
       .then((data) => {
         if (data?.id) setUser(data);
-        else router.push("/login");
+        else router.push("/domains/login");
       })
-      .catch(() => router.push("/login"));
+      .catch(() => router.push("/domains/login"));
   }, [router]);
 
   const handleLogout = async () => {
