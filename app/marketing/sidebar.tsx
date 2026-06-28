@@ -15,6 +15,7 @@ const navItems = [
   { href: "/marketing/campaigns", label: "Campaigns", icon: "📧" },
   { href: "/marketing/lists", label: "Lists", icon: "📋" },
   { href: "/marketing/contacts", label: "Contacts", icon: "👥" },
+  { href: "/marketing/contacts/find", label: "Find Contacts", icon: "🔍" },
   { href: "/marketing/templates", label: "Templates", icon: "📝" },
   { href: "/marketing/providers", label: "SMTP Providers", icon: "🔌" },
   { href: "/marketing/segments", label: "Segments", icon: "🎯" },
