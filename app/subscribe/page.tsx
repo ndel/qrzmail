@@ -65,16 +65,18 @@ export default function SubscribePage() {
     const params = new URLSearchParams(window.location.search);
     const planParam = params.get("plan");
     const successParam = params.get("success");
+    const urlPlan = planParam && planParam in PLAN_INFO ? (planParam as PlanId) : null;
 
-    if (planParam && planParam in PLAN_INFO) {
-      setSelectedPlan(planParam as PlanId);
+    if (urlPlan) {
+      setSelectedPlan(urlPlan);
     }
 
     // If redirected here after successful direct submission from pricing page
     if (successParam === "1") {
+      const successPlan = urlPlan ?? selectedPlan;
       setState({
         type: "success",
-        message: `Your ${PLAN_INFO[selectedPlan].name} subscription request has been submitted. We'll review it and send an invoice to your email within 1-2 business days.`,
+        message: `Your ${PLAN_INFO[successPlan].name} subscription request has been submitted. We'll review it and send an invoice to your email within 1-2 business days.`,
       });
       return;
     }
@@ -88,7 +90,7 @@ export default function SubscribePage() {
         }
       })
       .catch(() => {});
-  }, []);
+  }, [selectedPlan]);
 
   // Auto-submit if user is logged in, on a free plan, and a plan was specified in the URL
   useEffect(() => {
@@ -106,7 +108,7 @@ export default function SubscribePage() {
         handleSubscribeDirect(planParam as PlanId);
       }
     }
-  }, [userEmail, userSubscription, selectedPlan, state.type]);
+  }, [autoSubmitted, userEmail, userSubscription, selectedPlan, state.type]);
 
   async function handleSubscribeDirect(plan: PlanId) {
     setState({ type: "loading" });
@@ -166,7 +168,7 @@ export default function SubscribePage() {
             {state.message}
           </div>
           <p style={{ marginTop: "20px", fontSize: "14px", color: "var(--ink-soft)", lineHeight: "1.6" }}>
-            We'll review your request and send an invoice with payment instructions
+            We&apos;ll review your request and send an invoice with payment instructions
             to <strong>{userEmail}</strong> within 1-2 business days.
             Once payment is confirmed, your plan will be activated.
           </p>
@@ -195,7 +197,7 @@ export default function SubscribePage() {
 
           {userSubscription === "pending" && (
             <div className="message" style={{ background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.25)", color: "#fcd34d" }}>
-              Your subscription request is pending. We'll be in touch soon.
+              Your subscription request is pending. We&apos;ll be in touch soon.
             </div>
           )}
 
@@ -261,7 +263,7 @@ export default function SubscribePage() {
           </div>
 
           <div className="fine-print" style={{ marginTop: "16px", lineHeight: "1.5" }}>
-            <strong>How it works:</strong> After submitting, we'll send an invoice to your email.
+            <strong>How it works:</strong> After submitting, we&apos;ll send an invoice to your email.
             Payment is processed manually via bank transfer or payment link.
             Once confirmed, your plan is activated within 24 hours.
           </div>

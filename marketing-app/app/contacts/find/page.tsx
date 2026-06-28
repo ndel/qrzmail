@@ -33,7 +33,7 @@ export default function FindContactsPage() {
   const [savedApiKey, setSavedApiKey] = useState("");
 
   useEffect(() => {
-    fetch("/marketing/api/lists")
+    fetch("/api/lists")
       .then((r) => r.json())
       .then((data) => {
         setLists(data);
@@ -62,7 +62,7 @@ export default function FindContactsPage() {
     setSavedApiKey(apiKey);
 
     try {
-      const res = await fetch("/marketing/api/contacts/find", {
+      const res = await fetch("/api/contacts/find", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ niche: niche.trim(), api_key: apiKey, count }),
@@ -88,7 +88,7 @@ export default function FindContactsPage() {
     setImportResult(null);
 
     try {
-      const res = await fetch("/marketing/api/contacts/import", {
+      const res = await fetch("/api/contacts/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

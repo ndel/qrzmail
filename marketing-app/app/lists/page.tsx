@@ -16,7 +16,7 @@ export default function ListsPage() {
 
   const load = () => {
     setLoading(true);
-    fetch("/marketing/api/lists")
+    fetch("/api/lists")
       .then((r) => r.json())
       .then(setLists)
       .finally(() => setLoading(false));

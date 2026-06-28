@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { exec } from "child_process";
+import { execFile } from "child_process";
 import { promisify } from "util";
 import { log, logRequest, logResponse, parseJsonBody, checkRateLimit, cleanRateLimits } from "@/lib/middleware";
 
@@ -8,8 +8,9 @@ export const runtime = "nodejs";
 const MAIL_DOMAIN = process.env.MAIL_DOMAIN ?? "qrzmail.com";
 const MAILCOW_API_URL = process.env.MAILCOW_API_URL ?? "https://mail.qrzmail.com";
 const MAILCOW_API_KEY = process.env.MAILCOW_API_KEY;
+const DOVECOT_CONTAINER = process.env.DOVECOT_CONTAINER ?? "mailcowdockerized-dovecot-mailcow-1";
 
-const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 type SignupBody = {
   localPart?: string;
@@ -193,9 +194,11 @@ export async function POST(request: Request) {
   try {
     const folders = ["INBOX", "Drafts", "Sent", "Trash", "Junk"];
     for (const folder of folders) {
-      await execAsync(
-        `docker exec mailcowdockerized-dovecot-mailcow-1 doveadm mailbox create -u ${emailAddress} ${folder} 2>/dev/null || true`
-      );
+      await execFileAsync(
+        "docker",
+        ["exec", DOVECOT_CONTAINER, "doveadm", "mailbox", "create", "-u", emailAddress, folder],
+        { timeout: 10000 },
+      ).catch(() => undefined);
     }
     log("info", "Initialized IMAP folders", { email: emailAddress });
   } catch (err) {

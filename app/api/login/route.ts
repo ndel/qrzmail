@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import tls from "node:tls";
 import crypto from "node:crypto";
 import { createSessionToken, hashPassword } from "@/lib/auth";
+import { generateCsrfToken, setAccountAuthCookies } from "@/lib/session";
 import { readData, updateData } from "@/lib/store";
 import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
 
@@ -149,27 +150,9 @@ export async function POST(request: Request) {
   }
 
   const sessionToken = createSessionToken(user);
-  const csrfToken = crypto.randomBytes(32).toString("hex");
-
+  const csrfToken = generateCsrfToken();
   const response = NextResponse.json({ webmailUrl: WEBMAIL_URL, csrfToken });
-
-  // Set session cookie for domain panel
-  response.cookies.set("qrzmail_session", sessionToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
-
-  // Set CSRF cookie
-  response.cookies.set("csrf_token", csrfToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
+  setAccountAuthCookies(response, sessionToken, csrfToken);
 
   logResponse(request, response, startTime);
   return response;

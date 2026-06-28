@@ -589,7 +589,7 @@ export default function DomainsClient() {
               <div className="add-domain-icon"><IconPlus /></div>
               <div>
                 <h3>Add a New Domain</h3>
-                <p>Enter your domain name to get started. We'll guide you through DNS verification and email setup.</p>
+                <p>Enter your domain name to get started. We&apos;ll guide you through DNS verification and email setup.</p>
               </div>
             </div>
             <form className="add-domain-form" onSubmit={addDomain}>
@@ -764,7 +764,7 @@ export default function DomainsClient() {
                     <input id="localPart" name="localPart" placeholder="support" required />
                     <span className="suffix">@{activeDomains.find((d) => d.id === mailboxDomainId)?.domain ?? "domain.com"}</span>
                   </div>
-                  <p className="field-hint">Enter the local part only (e.g., "support"). The domain is already selected above.</p>
+                  <p className="field-hint">Enter the local part only (e.g., &quot;support&quot;). The domain is already selected above.</p>
                 </div>
                 <div className="field">
                   <label htmlFor="name">Display name</label>
@@ -1049,7 +1049,7 @@ export default function DomainsClient() {
                   <input id="add-alias-address" name="address" placeholder="info" required />
                   <span className="suffix">@{activeDomains.find((d) => d.id === (modal.type === "add-alias" ? modal.domainId : ""))?.domain ?? "domain.com"}</span>
                 </div>
-                <p className="field-hint">Enter the local part only (e.g., "info"). The domain is already selected above.</p>
+                <p className="field-hint">Enter the local part only (e.g., &quot;info&quot;). The domain is already selected above.</p>
               </div>
               <div className="field">
                 <label htmlFor="add-alias-goto">Forward to</label>

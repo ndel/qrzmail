@@ -72,14 +72,40 @@ export async function DELETE(request: Request, context: Params) {
     }
   }
 
-  // Remove from local data
-  updateData((data) => {
+  // Remove from local data. If this was a standalone QRZMail account,
+  // remove the matching domain-panel user once it has no owned resources.
+  const cleanup = updateData((data) => {
+    let deletedUserEmail: string | null = null;
+    const mailboxOwner = data.users.find(
+      (entry) =>
+        entry.id === mailbox.ownerId &&
+        entry.role !== "superadmin" &&
+        entry.email.toLowerCase() === mailbox.email.toLowerCase(),
+    );
+
     data.mailboxes = data.mailboxes.filter((entry) => entry.id !== id);
+
+    if (mailboxOwner) {
+      const hasOtherMailboxes = data.mailboxes.some((entry) => entry.ownerId === mailboxOwner.id);
+      const hasDomains = data.domains.some((entry) => entry.ownerId === mailboxOwner.id);
+      const hasAliases = data.aliases.some((entry) => entry.ownerId === mailboxOwner.id);
+
+      if (!hasOtherMailboxes && !hasDomains && !hasAliases) {
+        data.users = data.users.filter((entry) => entry.id !== mailboxOwner.id);
+        deletedUserEmail = mailboxOwner.email;
+      }
+    }
+
+    return { deletedUserEmail };
   });
 
-  log("info", "Admin deleted mailbox", { email: mailbox.email, adminId: user.id });
+  log("info", "Admin deleted mailbox", {
+    email: mailbox.email,
+    adminId: user.id,
+    deletedUserEmail: cleanup.deletedUserEmail,
+  });
 
-  const response = NextResponse.json({ success: true });
+  const response = NextResponse.json({ success: true, deletedUserEmail: cleanup.deletedUserEmail });
   logResponse(request, response, startTime);
   return response;
 }

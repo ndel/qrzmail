@@ -1,9 +1,14 @@
 import { cookies } from "next/headers";
 import crypto from "node:crypto";
+import { requireEnv } from "./env";
+import {
+  ACCOUNT_SESSION_COOKIE_NAME,
+  accountSessionCookieOptions,
+  clearAccountSessionCookies,
+} from "./session";
 import { readData, type User } from "./store";
 
-const COOKIE_NAME = "qrzmail_session";
-const SESSION_SECRET = process.env.SESSION_SECRET ?? "change-this-session-secret";
+const SESSION_SECRET = requireEnv("SESSION_SECRET");
 const PASSWORD_ITERATIONS = 120000;
 
 type SessionPayload = {
@@ -77,23 +82,20 @@ export function verifySessionToken(token?: string): SessionPayload | null {
 
 export async function setSessionCookie(user: User) {
   const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, createSessionToken(user), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
+  cookieStore.set(
+    ACCOUNT_SESSION_COOKIE_NAME,
+    createSessionToken(user),
+    accountSessionCookieOptions(),
+  );
 }
 
 export async function clearSessionCookie() {
-  const cookieStore = await cookies();
-  cookieStore.delete(COOKIE_NAME);
+  await clearAccountSessionCookies();
 }
 
 export async function getCurrentUser() {
   const cookieStore = await cookies();
-  const session = verifySessionToken(cookieStore.get(COOKIE_NAME)?.value);
+  const session = verifySessionToken(cookieStore.get(ACCOUNT_SESSION_COOKIE_NAME)?.value);
   if (!session) {
     return null;
   }

@@ -17,7 +17,7 @@ export default function NewListPage() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/marketing/api/lists", {
+      const res = await fetch("/api/lists", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), description: description.trim() }),

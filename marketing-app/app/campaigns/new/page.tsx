@@ -26,9 +26,9 @@ export default function NewCampaignPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch("/marketing/api/providers").then((r) => r.json()),
-      fetch("/marketing/api/templates").then((r) => r.json()),
-      fetch("/marketing/api/lists").then((r) => r.json()),
+      fetch("/api/providers").then((r) => r.json()),
+      fetch("/api/templates").then((r) => r.json()),
+      fetch("/api/lists").then((r) => r.json()),
     ]).then(([p, t, l]) => {
       setProviders(p);
       setTemplates(t);
@@ -42,7 +42,7 @@ export default function NewCampaignPage() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/marketing/api/campaigns", {
+      const res = await fetch("/api/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

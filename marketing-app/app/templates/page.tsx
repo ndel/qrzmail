@@ -15,7 +15,7 @@ export default function TemplatesPage() {
 
   useEffect(() => {
     setLoading(true);
-    fetch("/marketing/api/templates")
+    fetch("/api/templates")
       .then((r) => r.json())
       .then(setTemplates)
       .finally(() => setLoading(false));

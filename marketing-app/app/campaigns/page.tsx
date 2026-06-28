@@ -19,7 +19,7 @@ export default function CampaignsPage() {
 
   const load = () => {
     setLoading(true);
-    fetch("/marketing/api/campaigns")
+    fetch("/api/campaigns")
       .then((r) => r.json())
       .then(setCampaigns)
       .finally(() => setLoading(false));
@@ -28,7 +28,7 @@ export default function CampaignsPage() {
   useEffect(load, []);
 
   const handleAction = async (id: string, action: string) => {
-    await fetch("/marketing/api/campaigns", {
+    await fetch("/api/campaigns", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id, action }),

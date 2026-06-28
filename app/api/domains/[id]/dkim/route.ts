@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { generateKeyPairSync } from "node:crypto";
-import { execSync } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { promises as dns } from "node:dns";
 import { getCurrentUser } from "@/lib/auth";
+import { requireEnv } from "@/lib/env";
 import { updateData } from "@/lib/store";
 import { log, logRequest, logResponse, requireCsrf } from "@/lib/middleware";
 
@@ -13,7 +14,7 @@ type Params = {
 };
 
 const REDIS_HOST = process.env.REDIS_HOST ?? "redis-mailcow";
-const REDIS_PASSWORD = process.env.REDIS_PASSWORD ?? "BmEZfDNusDZ4LsT0BEXqMf7AuiRz";
+const REDIS_PASSWORD = requireEnv("REDIS_PASSWORD");
 const DKIM_SELECTOR = "dkim";
 
 function formatDkimPublicKey(pem: string): string {
@@ -30,13 +31,19 @@ function makeDkimDnsRecord(domain: string, publicKeyPem: string): string {
 }
 
 function redisSet(hash: string, key: string, value: string) {
-  // Use redis-cli to set a hash field
-  // Escape single quotes in the value for shell safety
-  const escaped = value.replace(/'/g, "'\\''");
-  execSync(
-    `redis-cli -h ${REDIS_HOST} -a '${REDIS_PASSWORD}' HMSET '${hash}' '${key}' '${escaped}'`,
-    { timeout: 10000, stdio: "pipe" },
+  const result = spawnSync(
+    "redis-cli",
+    ["-h", REDIS_HOST, "-a", REDIS_PASSWORD, "HSET", hash, key, value],
+    { timeout: 10000, stdio: "pipe", encoding: "utf8" },
   );
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (result.status !== 0) {
+    throw new Error(result.stderr || `redis-cli exited with status ${result.status}`);
+  }
 }
 
 async function checkDkimDnsRecord(domain: string): Promise<boolean> {

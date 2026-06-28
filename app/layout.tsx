@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "./globals.css";
+import CookieNotice from "./components/cookie-notice";
+import GoogleAnalytics from "./components/google-analytics";
 import NavUser from "./components/nav-user";
 import ThemeToggle from "./components/theme-toggle";
 
@@ -159,6 +161,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <GoogleAnalytics />
         <div className="shell">
           <header className="topbar">
             <Link className="brand" href="/" aria-label="QRZMail Home">
@@ -185,6 +188,7 @@ export default function RootLayout({
               </div>
             </div>
           </footer>
+          <CookieNotice />
         </div>
       </body>
     </html>

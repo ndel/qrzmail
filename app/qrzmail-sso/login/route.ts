@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import crypto from "node:crypto";
 import { createSessionToken, hashPassword } from "@/lib/auth";
+import { setAccountAuthCookies } from "@/lib/session";
 import { readData, updateData } from "@/lib/store";
 import { log, logRequest, logResponse } from "@/lib/middleware";
 
@@ -20,6 +21,10 @@ const MAILCOW_SSO_URL =
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function loginErrorRedirect() {
+  return NextResponse.redirect(new URL("/?login=failed", "https://qrzmail.com"));
 }
 
 function getSetCookieHeaders(headers: Headers) {
@@ -46,7 +51,7 @@ export async function POST(request: Request) {
 
   if (!isValidEmail(email) || !password) {
     log("warn", "SSO invalid input");
-    const response = NextResponse.redirect(new URL("/login", "https://qrzmail.com"));
+    const response = loginErrorRedirect();
     logResponse(request, response, startTime);
     return response;
   }
@@ -70,20 +75,28 @@ export async function POST(request: Request) {
     });
   } catch (fetchError) {
     log("error", "Mailcow SSO script error", { error: fetchError instanceof Error ? fetchError.message : String(fetchError) });
-    const response = NextResponse.redirect(new URL("/login", "https://qrzmail.com"));
+    const response = loginErrorRedirect();
     logResponse(request, response, startTime);
     return response;
   }
 
   log("info", "Mailcow SSO response", { status: ssoResponse.status });
 
+  const ssoLocation = ssoResponse.headers.get("location") ?? "";
+  const ssoFailed =
+    ssoLocation.includes("/login?error=") ||
+    ssoLocation.includes("qrzmail.com/login");
+
   // If the PHP script returned a redirect (302), authentication succeeded
   // and a session cookie was set. Forward the cookie to the browser.
-  if (ssoResponse.status !== 302 && ssoResponse.status !== 200) {
-    log("warn", "Mailcow SSO script returned unexpected status", { status: ssoResponse.status });
+  if ((ssoResponse.status !== 302 && ssoResponse.status !== 200) || ssoFailed) {
+    log("warn", "Mailcow SSO script did not authenticate", {
+      status: ssoResponse.status,
+      location: ssoLocation,
+    });
     const body = await ssoResponse.text().catch(() => "could not read body");
     log("warn", "SSO response body", { body: body.substring(0, 200) });
-    const response = NextResponse.redirect(new URL("/login", "https://qrzmail.com"));
+    const response = loginErrorRedirect();
     logResponse(request, response, startTime);
     return response;
   }
@@ -119,13 +132,15 @@ export async function POST(request: Request) {
   }
 
   const sessionToken = createSessionToken(user);
-  const csrfToken = crypto.randomBytes(32).toString("hex");
 
-  // Redirect the user to SOGo webmail
-  const response = NextResponse.redirect(
-    `${WEBMAIL_BASE_URL}${encodeURIComponent(email)}/view`,
-    { status: 303 }
-  );
+  const sogoLocation = ssoLocation || "/SOGo/so/";
+  const redirectUrl = sogoLocation.startsWith("http")
+    ? sogoLocation
+    : new URL(sogoLocation, WEBMAIL_BASE_URL).toString();
+
+  // Redirect to the SOGo entry point returned by the Mailcow SSO bridge.
+  // SOGo initializes the webmail session there before routing to the mailbox view.
+  const response = NextResponse.redirect(redirectUrl, { status: 303 });
   response.headers.set("Cache-Control", "no-store");
 
   // Forward the PHP session cookie from the Mailcow SSO script
@@ -136,18 +151,7 @@ export async function POST(request: Request) {
     response.headers.append("Set-Cookie", cookie);
   }
 
-  // Set domain panel session cookie (use headers.append to avoid
-  // overwriting the PHP session cookie already appended above)
-  response.headers.append(
-    "Set-Cookie",
-    `qrzmail_session=${sessionToken}; HttpOnly; SameSite=Lax; Secure; Path=/; Max-Age=${7 * 24 * 60 * 60}`
-  );
-
-  // Set CSRF cookie
-  response.headers.append(
-    "Set-Cookie",
-    `csrf_token=${csrfToken}; HttpOnly; SameSite=Lax; Secure; Path=/; Max-Age=${7 * 24 * 60 * 60}`
-  );
+  setAccountAuthCookies(response, sessionToken);
 
   log("info", "SSO redirecting to webmail with domain session", { email });
 

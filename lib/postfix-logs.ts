@@ -1,6 +1,3 @@
-import { existsSync } from "node:fs";
-import { readFile, readdir } from "node:fs/promises";
-
 // ── Types ────────────────────────────────────────────────
 
 export type PostfixMailEvent = {
@@ -41,8 +38,9 @@ export type PostfixLogSummary = {
  * Directory where Docker container logs are stored.
  * Mounted from the host's /var/lib/docker/containers via docker-compose.prod.yml.
  */
-const DOCKER_CONTAINERS_DIR =
-  process.env.DOCKER_CONTAINERS_DIR ?? "/var/lib/docker/containers";
+function getDockerContainersDir() {
+  return process.env.DOCKER_CONTAINERS_DIR ?? "/var/lib/docker/containers";
+}
 
 /**
  * Cache for the resolved Postfix log file path.
@@ -61,9 +59,21 @@ let _resolvedLogPath: string | null = null;
 async function resolvePostfixLogPath(): Promise<string | null> {
   if (_resolvedLogPath) return _resolvedLogPath;
 
-  if (!existsSync(DOCKER_CONTAINERS_DIR)) {
+  const { access, readFile, readdir } = await import("node:fs/promises");
+  const dockerContainersDir = getDockerContainersDir();
+
+  async function exists(filePath: string) {
+    try {
+      await access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  if (!(await exists(dockerContainersDir))) {
     console.warn(
-      `[postfix-logs] Docker containers dir not found: ${DOCKER_CONTAINERS_DIR}. ` +
+      `[postfix-logs] Docker containers dir not found: ${dockerContainersDir}. ` +
         "Stats will show 0 for sent/received. " +
         "Ensure the Docker container logs directory is mounted in docker-compose.prod.yml.",
     );
@@ -71,19 +81,19 @@ async function resolvePostfixLogPath(): Promise<string | null> {
   }
 
   try {
-    const entries = await readdir(DOCKER_CONTAINERS_DIR, { withFileTypes: true });
+    const entries = await readdir(dockerContainersDir, { withFileTypes: true });
 
     // Prefer Docker metadata over log content. Several mailcow containers mention
     // "postfix" in their logs, but only the real container has this name.
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      const containerDir = `${DOCKER_CONTAINERS_DIR}/${entry.name}`;
+      const containerDir = `${dockerContainersDir}/${entry.name}`;
       const logFile = `${containerDir}/${entry.name}-json.log`;
       const configFile = `${containerDir}/config.v2.json`;
 
-      if (!existsSync(logFile)) continue;
+      if (!(await exists(logFile))) continue;
 
-      if (!existsSync(configFile)) continue;
+      if (!(await exists(configFile))) continue;
 
       try {
         const config = JSON.parse(await readFile(configFile, "utf-8")) as {
@@ -108,10 +118,10 @@ async function resolvePostfixLogPath(): Promise<string | null> {
 
     for (const entry of entries) {
       if (!entry.isDirectory()) continue;
-      const containerDir = `${DOCKER_CONTAINERS_DIR}/${entry.name}`;
+      const containerDir = `${dockerContainersDir}/${entry.name}`;
       const logFile = `${containerDir}/${entry.name}-json.log`;
 
-      if (!existsSync(logFile)) continue;
+      if (!(await exists(logFile))) continue;
 
       // Fallback: look for actual Postfix delivery/qmgr log lines, not just the
       // word "postfix", which also appears in watchdog and application logs.
@@ -124,7 +134,7 @@ async function resolvePostfixLogPath(): Promise<string | null> {
     }
 
     console.warn(
-      `[postfix-logs] No Postfix container log found in ${DOCKER_CONTAINERS_DIR}. ` +
+      `[postfix-logs] No Postfix container log found in ${dockerContainersDir}. ` +
         "Stats will show 0 for sent/received.",
     );
     return null;
@@ -214,6 +224,7 @@ export async function parsePostfixLogs(
   const queueSizes = new Map<string, { from: string; size: number }>();
 
   // Read the file line by line (it's a JSON-lines file)
+  const { readFile } = await import("node:fs/promises");
   const content = await readFile(logPath, "utf-8");
   const lines = content.split("\n");
 

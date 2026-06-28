@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { hashPassword, setSessionCookie } from "@/lib/auth";
+import { createSessionToken, hashPassword } from "@/lib/auth";
+import { generateCsrfToken, setAccountAuthCookies } from "@/lib/session";
 import { makeId, nowIso, updateData } from "@/lib/store";
 import { isStrongPassword, isValidEmail, normalizeEmail } from "@/lib/validation";
 import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
@@ -67,10 +68,15 @@ export async function POST(request: Request) {
     return response;
   }
 
-  await setSessionCookie(user);
   log("info", "Account registered", { email });
 
-  const response = NextResponse.json({ user: { email: user.email, name: user.name, role: user.role } });
+  const csrfToken = generateCsrfToken();
+  const response = NextResponse.json({
+    user: { email: user.email, name: user.name, role: user.role },
+    csrfToken,
+  });
+  setAccountAuthCookies(response, createSessionToken(user), csrfToken);
+
   logResponse(request, response, startTime);
   return response;
 }

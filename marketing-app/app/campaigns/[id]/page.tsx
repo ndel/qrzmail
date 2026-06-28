@@ -67,7 +67,7 @@ export default function CampaignDetailPage() {
   };
 
   const handleAction = async (action: string) => {
-    await fetch("/marketing/api/campaigns", {
+    await fetch("/api/campaigns", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: params.id, action }),

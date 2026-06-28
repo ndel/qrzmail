@@ -57,8 +57,10 @@ export default function PrivacyPage() {
           <div>
             <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--ink)", marginBottom: "8px" }}>5. Cookies</h2>
             <p>
-              We use essential session cookies to maintain your login state. No tracking cookies,
-              analytics cookies, or third-party cookies are used on this service.
+              We use essential session cookies to maintain your login state and protect your
+              account. If you choose to allow analytics cookies, we use Google Analytics to
+              understand aggregate site usage and improve the service. We do not use advertising
+              cookies.
             </p>
           </div>
 
@@ -66,7 +68,9 @@ export default function PrivacyPage() {
             <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--ink)", marginBottom: "8px" }}>6. Third-Party Services</h2>
             <p>
               QRZMail uses Mailcow and SOGo as underlying email platform components. These are
-              self-hosted on our infrastructure. No third-party email processing services are involved.
+              self-hosted on our infrastructure. We also use Google Analytics for website
+              analytics when you allow analytics cookies. No third-party email processing
+              services are involved.
             </p>
           </div>
 

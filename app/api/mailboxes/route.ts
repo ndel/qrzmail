@@ -4,6 +4,7 @@ import { MailcowApiError, addMailcowMailbox, isAlreadyExistsError } from "@/lib/
 import { makeId, nowIso, readData, updateData } from "@/lib/store";
 import { isStrongPassword, isValidLocalPart } from "@/lib/validation";
 import { log, logRequest, logResponse, parseJsonBody, requireCsrf } from "@/lib/middleware";
+import db from "@/lib/db";
 import nodemailer from "nodemailer";
 
 export const runtime = "nodejs";
@@ -22,8 +23,6 @@ const WEBMAIL_URL = process.env.WEBMAIL_URL || "https://mail.qrzmail.com/SOGo/";
  */
 function syncRecoveryToDb(email: string, recoveryEmail: string) {
   try {
-    // Dynamic import to avoid circular dependencies at module level
-    const db = require("@/lib/db").default;
     db.prepare(
       "INSERT OR REPLACE INTO user_recovery (email, recovery_email) VALUES (?, ?)",
     ).run(email, recoveryEmail);

@@ -27,7 +27,7 @@ export default function NewTemplatePage() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/marketing/api/templates", {
+      const res = await fetch("/api/templates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

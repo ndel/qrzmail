@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createSessionToken, verifyPassword } from "@/lib/auth";
 import { readData } from "@/lib/store";
 import { normalizeEmail } from "@/lib/validation";
-import { log, logRequest, logResponse, parseJsonBody, setCsrfCookie } from "@/lib/middleware";
+import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
+import { generateCsrfToken, setAccountAuthCookies } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -47,49 +48,12 @@ export async function POST(request: Request) {
   // Build the session token
   const sessionToken = createSessionToken(user);
 
-  // Create the final response with CSRF token in the body
-  const response = NextResponse.json({
-    user: { email: user.email, name: user.name, role: user.role },
-    csrfToken: "",
-  });
-
-  // Set session cookie directly on the final response
-  response.cookies.set("qrzmail_session", sessionToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
-
-  // Set CSRF cookie directly on the final response and capture the token
-  const csrfToken = setCsrfCookie(response);
-
-  // Now update the response body with the actual CSRF token.
-  // We can't modify the body of an existing NextResponse.json(), so we
-  // need to create a new one. But we must preserve the cookies that were
-  // set via response.cookies.set().
-  //
-  // In Next.js, response.cookies.set() stores cookies in an internal
-  // ResponseCookies object, NOT in the Headers. So response.headers.get("set-cookie")
-  // returns null. To preserve cookies, we read them from the internal store
-  // and set them on the new response.
+  const csrfToken = generateCsrfToken();
   const finalResponse = NextResponse.json({
     user: { email: user.email, name: user.name, role: user.role },
     csrfToken,
   });
-
-  // Copy cookies from the first response to the new one
-  const cookies = response.cookies.getAll();
-  for (const cookie of cookies) {
-    finalResponse.cookies.set(cookie.name, cookie.value, {
-      httpOnly: cookie.httpOnly,
-      sameSite: cookie.sameSite as "lax" | "strict" | "none" | undefined,
-      secure: cookie.secure,
-      path: cookie.path,
-      maxAge: cookie.maxAge,
-    });
-  }
+  setAccountAuthCookies(finalResponse, sessionToken, csrfToken);
 
   log("info", "Admin logged in", { email: user.email });
   logResponse(request, finalResponse, startTime);

@@ -18,7 +18,7 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const endpoint = isRegister ? "/marketing/api/auth/register" : "/marketing/api/auth/login";
+      const endpoint = isRegister ? "/api/auth/register" : "/api/auth/login";
       const body: any = { email: email.trim(), password };
       if (isRegister) body.name = name.trim();
 
@@ -33,7 +33,7 @@ export default function LoginPage() {
         throw new Error(data.error || "Authentication failed");
       }
 
-      router.push("/marketing");
+      router.push("/");
     } catch (err: any) {
       setError(err.message);
     } finally {

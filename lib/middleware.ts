@@ -1,13 +1,17 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import crypto from "node:crypto";
+import db from "./db";
+import {
+  generateCsrfToken,
+  setCsrfCookie,
+  validateCsrf,
+} from "./session";
+
+export { generateCsrfToken, setCsrfCookie, validateCsrf } from "./session";
 
 // ── Configuration ──────────────────────────────────────────────────────────
 
 const MAX_BODY_BYTES = 100_000; // 100 KB limit for JSON request bodies
-const CSRF_COOKIE_NAME = "csrf_token";
-const CSRF_HEADER_NAME = "x-csrf-token";
-
 // ── Structured Logger ──────────────────────────────────────────────────────
 
 export type LogLevel = "info" | "warn" | "error" | "debug";
@@ -186,70 +190,6 @@ export async function parseJsonBody<T>(
 // ── CSRF Protection ────────────────────────────────────────────────────────
 
 /**
- * Generates a random CSRF token value.
- */
-export function generateCsrfToken(): string {
-  return crypto.randomBytes(32).toString("base64url");
-}
-
-/**
- * Sets the CSRF cookie on a response.
- * Call this after login to establish a CSRF token for the session.
- */
-export function setCsrfCookie(response: NextResponse): string {
-  const token = generateCsrfToken();
-  response.cookies.set(CSRF_COOKIE_NAME, token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: 60 * 60 * 24, // 24 hours
-  });
-  return token;
-}
-
-/**
- * Validates that the CSRF token in the request header matches the cookie.
- * Call this on state-changing requests (POST, PATCH, DELETE, PUT).
- *
- * Returns `true` if valid, `false` if invalid.
- */
-export function validateCsrf(request: Request): boolean {
-  // Skip CSRF check for requests with no cookies (e.g., API clients)
-  const cookieHeader = request.headers.get("cookie");
-  if (!cookieHeader) {
-    return true; // Allow requests without cookies (they'll fail auth anyway)
-  }
-
-  const cookieToken = extractCookie(cookieHeader, CSRF_COOKIE_NAME);
-  const headerToken = request.headers.get(CSRF_HEADER_NAME);
-
-  if (!cookieToken || !headerToken) {
-    return false;
-  }
-
-  // Timing-safe comparison
-  if (cookieToken.length !== headerToken.length) {
-    return false;
-  }
-
-  return crypto.timingSafeEqual(
-    Buffer.from(cookieToken),
-    Buffer.from(headerToken),
-  );
-}
-
-function extractCookie(cookieHeader: string, name: string): string | null {
-  for (const part of cookieHeader.split(";")) {
-    const trimmed = part.trim();
-    if (trimmed.startsWith(name + "=")) {
-      return trimmed.slice(name.length + 1);
-    }
-  }
-  return null;
-}
-
-/**
  * Convenience: validates CSRF and returns a 403 response if invalid.
  * Returns `null` if valid (caller should proceed).
  */
@@ -293,9 +233,6 @@ export function checkRateLimit(
   const windowEnd = windowStart + windowMs;
 
   // Lazy-import db to avoid circular dependencies
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const db = require("@/lib/db").default;
-
   // Use UPSERT to atomically increment or insert
   const row = db.prepare(
     `INSERT INTO rate_limits (key, window_start, count)
@@ -323,7 +260,5 @@ export function cleanRateLimits(): void {
   const cutoff = now - RATE_LIMIT_WINDOW_MS * 2; // Keep last 2 windows
   const alignedCutoff = Math.floor(cutoff / RATE_LIMIT_WINDOW_MS) * RATE_LIMIT_WINDOW_MS;
 
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const db = require("@/lib/db").default;
   db.prepare("DELETE FROM rate_limits WHERE window_start < ?").run(alignedCutoff);
 }

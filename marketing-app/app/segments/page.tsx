@@ -25,7 +25,7 @@ export default function SegmentsPage() {
 
   const load = () => {
     setLoading(true);
-    fetch("/marketing/api/segments")
+    fetch("/api/segments")
       .then((r) => r.json())
       .then((data) => {
         setSegments(data);
@@ -41,7 +41,7 @@ export default function SegmentsPage() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/marketing/api/segments", {
+      const res = await fetch("/api/segments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: name.trim(), description: description.trim(), rules: [] }),
@@ -179,7 +179,7 @@ function ListSelector({ onSuggestionsChange }: { onSuggestionsChange: (s: Sugges
   const [selectedList, setSelectedList] = useState("");
 
   useEffect(() => {
-    fetch("/marketing/api/lists").then((r) => r.json()).then(setLists);
+    fetch("/api/lists").then((r) => r.json()).then(setLists);
   }, []);
 
   useEffect(() => {

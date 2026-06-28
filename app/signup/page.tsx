@@ -20,6 +20,7 @@ export default function SignupPage() {
   };
 
   const [state, setState] = useState<SignupState>({ type: "idle" });
+  const [localPart, setLocalPart] = useState("");
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -41,6 +42,7 @@ export default function SignupPage() {
     }
 
     setState({ type: "success", email: result.email, codes: result.codes || [] });
+    setLocalPart("");
     event.currentTarget.reset();
   }
 
@@ -113,7 +115,9 @@ export default function SignupPage() {
             <input
               id="localPart"
               name="localPart"
-              autoComplete="username"
+              autoComplete="off"
+              value={localPart}
+              onChange={(event) => setLocalPart(event.target.value)}
               minLength={3}
               maxLength={32}
               pattern="[a-z0-9][a-z0-9._-]{1,30}[a-z0-9]"
@@ -122,6 +126,24 @@ export default function SignupPage() {
             <span className="suffix">@qrzmail.com</span>
           </div>
         </div>
+
+        <input
+          aria-hidden="true"
+          autoComplete="username"
+          name="email"
+          readOnly
+          tabIndex={-1}
+          type="email"
+          value={localPart ? `${localPart.trim().toLowerCase()}@qrzmail.com` : ""}
+          style={{
+            position: "absolute",
+            left: "-10000px",
+            width: 1,
+            height: 1,
+            opacity: 0,
+            pointerEvents: "none",
+          }}
+        />
 
         <div className="field">
           <label htmlFor="name">Display name</label>

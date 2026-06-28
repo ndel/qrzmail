@@ -1,5 +1,4 @@
-import { readFile } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import db from "./db";
@@ -195,24 +194,33 @@ function domainToRow(d: DomainRecord) {
 // One-time migration from qrzmail.json
 // ---------------------------------------------------------------------------
 
-const DATA_DIR = process.env.QRZMAIL_DATA_DIR ?? path.join(process.cwd(), ".data");
-const DATA_FILE = path.join(DATA_DIR, "qrzmail.json");
+const isNextProductionBuild = process.env.NEXT_PHASE === "phase-production-build";
+
+function getLegacyDataFile() {
+  const dataDir = process.env.QRZMAIL_DATA_DIR ?? path.join(process.cwd(), ".data");
+  return path.join(dataDir, "qrzmail.json");
+}
 
 function migrateFromJsonIfNeeded() {
+  if (isNextProductionBuild) {
+    return;
+  }
+
   // Check if the users table is empty — if so, attempt migration
   const count = (db.prepare("SELECT COUNT(*) AS cnt FROM users").get() as { cnt: number }).cnt;
   if (count > 0) {
     return; // already migrated
   }
 
-  if (!existsSync(DATA_FILE)) {
+  const dataFile = getLegacyDataFile();
+  if (!existsSync(dataFile)) {
     return; // no JSON file to migrate from
   }
 
   // Read the JSON file (synchronous since we're already in a sync context)
   let raw: string;
   try {
-    raw = require("fs").readFileSync(DATA_FILE, "utf8");
+    raw = readFileSync(dataFile, "utf8");
   } catch {
     return; // can't read, skip migration
   }

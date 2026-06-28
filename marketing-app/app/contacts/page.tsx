@@ -47,7 +47,7 @@ function ContactsContent() {
   }, [listId, status, search]);
 
   useEffect(() => {
-    fetch("/marketing/api/lists").then((r) => r.json()).then(setLists);
+    fetch("/api/lists").then((r) => r.json()).then(setLists);
   }, []);
 
   useEffect(() => { load(1); }, [load]);

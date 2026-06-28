@@ -27,7 +27,7 @@ export default function Sidebar() {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    fetch("/marketing/api/auth/me")
+    fetch("/api/auth/me")
       .then((r) => r.json())
       .then((data) => {
         if (data.user) setUser(data.user);
@@ -36,8 +36,8 @@ export default function Sidebar() {
   }, []);
 
   const handleLogout = async () => {
-    await fetch("/marketing/api/auth/logout", { method: "POST" });
-    router.push("/marketing/login");
+    await fetch("/api/auth/logout", { method: "POST" });
+    router.push("/login");
   };
 
   return (

@@ -33,7 +33,7 @@ export default function ProvidersPage() {
 
   const load = () => {
     setLoading(true);
-    fetch("/marketing/api/providers")
+    fetch("/api/providers")
       .then((r) => r.json())
       .then(setProviders)
       .finally(() => setLoading(false));
@@ -46,7 +46,7 @@ export default function ProvidersPage() {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch("/marketing/api/providers", {
+      const res = await fetch("/api/providers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -74,7 +74,7 @@ export default function ProvidersPage() {
   const handleVerify = async (id: string) => {
     setVerifyingId(id);
     try {
-      const res = await fetch("/marketing/api/providers/verify", {
+      const res = await fetch("/api/providers/verify", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider_id: id }),

@@ -4,6 +4,7 @@ import { MailcowApiError, editMailcowMailbox, deleteMailcowMailbox } from "@/lib
 import { updateData } from "@/lib/store";
 import { isStrongPassword } from "@/lib/validation";
 import { log, logRequest, logResponse, parseJsonBody, requireCsrf } from "@/lib/middleware";
+import db from "@/lib/db";
 import mysql from "mysql2/promise";
 
 export const runtime = "nodejs";
@@ -14,7 +15,6 @@ export const runtime = "nodejs";
  */
 function syncRecoveryToDb(email: string, recoveryEmail: string) {
   try {
-    const db = require("@/lib/db").default;
     db.prepare(
       "INSERT OR REPLACE INTO user_recovery (email, recovery_email) VALUES (?, ?)",
     ).run(email, recoveryEmail);

@@ -2,18 +2,28 @@ import Database from "better-sqlite3";
 import fs from "fs";
 import path from "path";
 
-// In production (Docker), QRZMAIL_DATA_DIR is set to /data.
-// For local dev, fallback to .data in the project root.
-const dataDir = process.env.QRZMAIL_DATA_DIR || path.join(process.cwd(), ".data");
+const isNextProductionBuild = process.env.NEXT_PHASE === "phase-production-build";
 
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
+function getDbPath() {
+  const dbPath =
+    process.env.QRZMAIL_DB_PATH ||
+    (process.env.QRZMAIL_DATA_DIR
+      ? path.join(process.env.QRZMAIL_DATA_DIR, "qrzmail.db")
+      : path.join(process.cwd(), ".data", "qrzmail.db"));
+
+  const dataDir = path.dirname(dbPath);
+  if (!fs.existsSync(dataDir)) {
+    fs.mkdirSync(dataDir, { recursive: true });
+  }
+
+  return dbPath;
 }
 
-const dbPath = path.join(dataDir, "qrzmail.db");
-const db = new Database(dbPath);
+const dbPath = isNextProductionBuild ? ":memory:" : getDbPath();
+const db = new Database(dbPath, { timeout: 10000 });
 
 // Enable Write-Ahead Logging for better performance and concurrency
+db.pragma("busy_timeout = 10000");
 db.pragma("journal_mode = WAL");
 
 // Initialize Schema

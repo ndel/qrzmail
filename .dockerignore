@@ -4,3 +4,5 @@ npm-debug.log
 .env
 .git
 .DS_Store
+data
+.data

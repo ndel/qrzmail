@@ -2,7 +2,8 @@ import { NextResponse } from "next/server";
 import { createSessionToken, hashPassword, verifyPassword } from "@/lib/auth";
 import { makeId, nowIso, readData, updateData } from "@/lib/store";
 import { normalizeEmail } from "@/lib/validation";
-import { log, logRequest, logResponse, parseJsonBody, setCsrfCookie } from "@/lib/middleware";
+import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
+import { generateCsrfToken, setAccountAuthCookies } from "@/lib/session";
 import tls from "node:tls";
 
 export const runtime = "nodejs";
@@ -172,42 +173,13 @@ export async function POST(request: Request) {
   // Build the session token and CSRF token.
   const sessionToken = createSessionToken(user);
 
-  // Create the initial response so we can set cookies on it.
+  const csrfToken = generateCsrfToken();
   const response = NextResponse.json({
-    user: { email: user.email, name: user.name, role: user.role },
-  });
-
-  // Set session cookie
-  response.cookies.set("qrzmail_session", sessionToken, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: true,
-    path: "/",
-    maxAge: 7 * 24 * 60 * 60,
-  });
-
-  // Set CSRF cookie and capture the token for the response body
-  const csrfToken = setCsrfCookie(response);
-
-  // Re-create the response with the CSRF token in the body, preserving cookies
-  const finalResponse = NextResponse.json({
     user: { email: user.email, name: user.name, role: user.role },
     csrfToken,
   });
+  setAccountAuthCookies(response, sessionToken, csrfToken);
 
-  // Copy cookies from the first response to the new one using the internal cookie store
-  // (more reliable than reading the Set-Cookie header)
-  const cookies = response.cookies.getAll();
-  for (const cookie of cookies) {
-    finalResponse.cookies.set(cookie.name, cookie.value, {
-      httpOnly: cookie.httpOnly,
-      sameSite: cookie.sameSite as "lax" | "strict" | "none" | undefined,
-      secure: cookie.secure,
-      path: cookie.path,
-      maxAge: cookie.maxAge,
-    });
-  }
-
-  logResponse(request, finalResponse, startTime);
-  return finalResponse;
+  logResponse(request, response, startTime);
+  return response;
 }

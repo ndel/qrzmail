@@ -52,7 +52,7 @@ type AdminData = {
 type Tab = "users" | "domains" | "mailboxes" | "aliases";
 
 type ConfirmAction = {
-  type: "domain" | "mailbox";
+  type: "user" | "domain" | "mailbox";
   id: string;
   label: string;
 };
@@ -111,7 +111,9 @@ export default function AdminPage() {
 
     try {
       const endpoint =
-        confirm.type === "domain"
+        confirm.type === "user"
+          ? `/api/admin/users/${confirm.id}`
+          : confirm.type === "domain"
           ? `/api/admin/domains/${confirm.id}`
           : `/api/admin/mailboxes/${confirm.id}`;
 
@@ -230,7 +232,12 @@ export default function AdminPage() {
 
           {/* Tab Content */}
           <div className="tab-content">
-            {tab === "users" && <UsersTab users={data.users} />}
+            {tab === "users" && (
+              <UsersTab
+                users={data.users}
+                onDelete={(id, label) => setConfirm({ type: "user", id, label })}
+              />
+            )}
             {tab === "domains" && (
               <DomainsTab
                 domains={data.domains}
@@ -261,7 +268,9 @@ export default function AdminPage() {
             <p className="modal-subtitle">
               {confirm.type === "domain"
                 ? "This will permanently delete the domain and remove it from the mail server."
-                : "This will permanently delete the mailbox and remove it from the mail server."}
+                : confirm.type === "mailbox"
+                ? "This will permanently delete the mailbox and remove it from the mail server."
+                : "This will permanently delete the user and remove their owned mailboxes, domains, and aliases."}
             </p>
             <p>
               Are you sure you want to delete <strong>{confirm.label}</strong>?
@@ -291,7 +300,13 @@ export default function AdminPage() {
 
 // ── Users Tab ────────────────────────────────────────────
 
-function UsersTab({ users }: { users: User[] }) {
+function UsersTab({
+  users,
+  onDelete,
+}: {
+  users: User[];
+  onDelete: (id: string, label: string) => void;
+}) {
   if (users.length === 0) {
     return <div className="empty-row">No users registered yet.</div>;
   }
@@ -311,6 +326,7 @@ function UsersTab({ users }: { users: User[] }) {
           <span>Role</span>
           <span>Subscription</span>
           <span>Created</span>
+          <span></span>
         </div>
         {users.map((u) => (
           <div className="data-row" key={u.id}>
@@ -323,6 +339,16 @@ function UsersTab({ users }: { users: User[] }) {
             </span>
             <span className="muted">{u.subscription}</span>
             <span className="muted">{formatDate(u.createdAt)}</span>
+            <div className="row-actions">
+              <button
+                className="button danger small ghost"
+                disabled={u.role === "superadmin"}
+                onClick={() => onDelete(u.id, u.email)}
+                title={u.role === "superadmin" ? "Superadmin users cannot be deleted here" : "Delete user"}
+              >
+                ✕
+              </button>
+            </div>
           </div>
         ))}
       </div>

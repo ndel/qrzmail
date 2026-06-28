@@ -24,7 +24,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function Home() {
+export default async function Home({
+  searchParams,
+}: {
+  searchParams?: Promise<{ login?: string }>;
+}) {
+  const params = await searchParams;
+  const loginFailed = params?.login === "failed";
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -83,6 +90,12 @@ export default function Home() {
               action="https://mail.qrzmail.com/qrzmail-sso/login"
               method="post"
             >
+              {loginFailed && (
+                <div className="message error" role="alert">
+                  Email address or password is incorrect.
+                </div>
+              )}
+
               <div className="field">
                 <label htmlFor="email">Email address</label>
                 <input

@@ -44,7 +44,7 @@ export default function ListDetailPage() {
         return { email: parts[0], name: parts[1] || "", company: parts[2] || "" };
       });
 
-      const res = await fetch("/marketing/api/contacts/import", {
+      const res = await fetch("/api/contacts/import", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ list_id: params.id, contacts }),
