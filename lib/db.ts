@@ -127,6 +127,154 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_email_log_created_at ON email_log(created_at);
   CREATE INDEX IF NOT EXISTS idx_email_log_direction ON email_log(direction);
   CREATE INDEX IF NOT EXISTS idx_email_log_mailbox_id ON email_log(mailbox_id);
+
+  -- Marketing / Campaign Tables
+  CREATE TABLE IF NOT EXISTS marketing_providers (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL DEFAULT 'Default',
+    smtp_host TEXT NOT NULL,
+    smtp_port INTEGER NOT NULL DEFAULT 587,
+    smtp_user TEXT NOT NULL,
+    smtp_pass TEXT NOT NULL,
+    smtp_secure INTEGER NOT NULL DEFAULT 1,
+    imap_host TEXT NOT NULL DEFAULT '',
+    imap_port INTEGER NOT NULL DEFAULT 993,
+    imap_user TEXT NOT NULL DEFAULT '',
+    imap_pass TEXT NOT NULL DEFAULT '',
+    imap_secure INTEGER NOT NULL DEFAULT 1,
+    daily_limit INTEGER NOT NULL DEFAULT 300,
+    monthly_limit INTEGER NOT NULL DEFAULT 9000,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_lists (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_contacts (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    list_id TEXT NOT NULL REFERENCES marketing_lists(id) ON DELETE CASCADE,
+    email TEXT NOT NULL,
+    name TEXT DEFAULT '',
+    company TEXT DEFAULT '',
+    phone TEXT DEFAULT '',
+    custom_fields TEXT DEFAULT '{}',
+    status TEXT NOT NULL DEFAULT 'active' CHECK(status IN ('active','unsubscribed','bounced','complained')),
+    unsubscribe_token TEXT,
+    bounced_at TEXT,
+    complained_at TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+    UNIQUE(list_id, email)
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_templates (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    subject TEXT NOT NULL,
+    html_content TEXT NOT NULL,
+    plain_content TEXT,
+    variables TEXT DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_campaigns (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    provider_id TEXT NOT NULL REFERENCES marketing_providers(id),
+    template_id TEXT NOT NULL REFERENCES marketing_templates(id),
+    list_id TEXT NOT NULL REFERENCES marketing_lists(id),
+    status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft','scheduled','sending','paused','completed','failed')),
+    scheduled_at TEXT,
+    started_at TEXT,
+    completed_at TEXT,
+    total_recipients INTEGER NOT NULL DEFAULT 0,
+    sent_count INTEGER NOT NULL DEFAULT 0,
+    open_count INTEGER NOT NULL DEFAULT 0,
+    click_count INTEGER NOT NULL DEFAULT 0,
+    bounce_count INTEGER NOT NULL DEFAULT 0,
+    unsubscribe_count INTEGER NOT NULL DEFAULT 0,
+    complaint_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_queue (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    campaign_id TEXT NOT NULL REFERENCES marketing_campaigns(id),
+    contact_id TEXT NOT NULL REFERENCES marketing_contacts(id),
+    provider_id TEXT NOT NULL REFERENCES marketing_providers(id),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK(status IN ('pending','sending','sent','failed','bounced','opened','clicked','unsubscribed','complained')),
+    subject TEXT NOT NULL DEFAULT '',
+    html_body TEXT NOT NULL DEFAULT '',
+    plain_body TEXT,
+    tracking_id TEXT UNIQUE,
+    sent_at TEXT,
+    opened_at TEXT,
+    clicked_at TEXT,
+    error_message TEXT,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    max_retries INTEGER NOT NULL DEFAULT 3,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_links (
+    id TEXT PRIMARY KEY,
+    queue_id TEXT NOT NULL REFERENCES marketing_queue(id),
+    url TEXT NOT NULL,
+    redirect_token TEXT NOT NULL UNIQUE,
+    clicked_at TEXT,
+    click_count INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_feedback (
+    id TEXT PRIMARY KEY,
+    queue_id TEXT REFERENCES marketing_queue(id),
+    email TEXT NOT NULL,
+    type TEXT NOT NULL CHECK(type IN ('bounce','complaint','unsubscribe')),
+    reason TEXT,
+    source_message_id TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE TABLE IF NOT EXISTS marketing_segments (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT DEFAULT '',
+    rules TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  CREATE INDEX IF NOT EXISTS idx_marketing_providers_owner ON marketing_providers(owner_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_lists_owner ON marketing_lists(owner_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_contacts_owner ON marketing_contacts(owner_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_contacts_list ON marketing_contacts(list_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_contacts_status ON marketing_contacts(status);
+  CREATE INDEX IF NOT EXISTS idx_marketing_templates_owner ON marketing_templates(owner_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_campaigns_owner ON marketing_campaigns(owner_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_campaigns_status ON marketing_campaigns(status);
+  CREATE INDEX IF NOT EXISTS idx_marketing_queue_owner ON marketing_queue(owner_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_queue_campaign ON marketing_queue(campaign_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_queue_status ON marketing_queue(status);
+  CREATE INDEX IF NOT EXISTS idx_marketing_queue_tracking ON marketing_queue(tracking_id);
+  CREATE INDEX IF NOT EXISTS idx_marketing_links_token ON marketing_links(redirect_token);
+  CREATE INDEX IF NOT EXISTS idx_marketing_feedback_email ON marketing_feedback(email);
+  CREATE INDEX IF NOT EXISTS idx_marketing_segments_owner ON marketing_segments(owner_id);
 `);
 
 export default db;
