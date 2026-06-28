@@ -4,6 +4,7 @@ services:
       context: .
       args:
         SESSION_SECRET: "${SESSION_SECRET}"
+        REDIS_PASSWORD: "${REDIS_PASSWORD}"
     container_name: qrzmail-web
     restart: unless-stopped
     environment:
