@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type User = { email: string; name: string; role?: string; subscription?: string } | null;
 
@@ -10,19 +10,34 @@ export default function NavUser() {
   const router = useRouter();
   const [user, setUser] = useState<User>(undefined as unknown as User);
   const [loading, setLoading] = useState(true);
+  const fetchIdRef = useRef(0);
 
-  useEffect(() => {
+  const fetchUser = useCallback(() => {
+    const id = ++fetchIdRef.current;
     fetch("/api/account/me")
       .then((r) => (r.ok ? r.json() : { user: null }))
       .then((data) => {
-        setUser(data.user ?? null);
-        setLoading(false);
+        if (id === fetchIdRef.current) {
+          setUser(data.user ?? null);
+          setLoading(false);
+        }
       })
       .catch(() => {
-        setUser(null);
-        setLoading(false);
+        if (id === fetchIdRef.current) {
+          setUser(null);
+          setLoading(false);
+        }
       });
   }, []);
+
+  // Initial fetch + re-fetch when auth state changes (e.g. login from /mail page)
+  useEffect(() => {
+    fetchUser();
+
+    const handleAuthChange = () => fetchUser();
+    window.addEventListener("qrzmail-auth-change", handleAuthChange);
+    return () => window.removeEventListener("qrzmail-auth-change", handleAuthChange);
+  }, [fetchUser]);
 
   async function handleLogout() {
     await fetch("/api/account/logout", { method: "POST" });

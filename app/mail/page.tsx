@@ -468,6 +468,9 @@ export default function MailPage() {
       await loadFolders();
       await loadMessages("INBOX", "");
       showStatus("Signed in");
+      // Notify the navbar (NavUser) to re-fetch auth state so it shows
+      // the correct links (e.g. /domains instead of /domains/login)
+      window.dispatchEvent(new CustomEvent("qrzmail-auth-change"));
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed.");
     } finally {

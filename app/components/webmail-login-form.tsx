@@ -35,6 +35,8 @@ export default function WebmailLoginForm({
         );
       }
 
+      // Notify the navbar (NavUser) to re-fetch auth state
+      window.dispatchEvent(new CustomEvent("qrzmail-auth-change"));
       // Login succeeded — redirect to the built-in webmail client
       router.push("/mail");
     } catch (err) {
