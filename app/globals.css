@@ -6392,22 +6392,33 @@ code {
 .mail-route .mail-compose-button {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 16px;
-  background: var(--accent);
-  color: white;
+  gap: 8px;
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--ink);
   border: none;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
   width: 100%;
-  justify-content: center;
-  transition: background 0.15s;
+  text-align: left;
+  transition: all 0.1s;
+  margin-bottom: 4px;
 }
 
 .mail-route .mail-compose-button:hover {
-  background: var(--accent-dark);
+  background: rgba(255,255,255,0.05);
+  color: var(--ink);
+}
+
+.mail-route .mail-compose-button svg {
+  opacity: 0.7;
+  flex: 0 0 auto;
+}
+
+.mail-route .mail-compose-button:hover svg {
+  opacity: 1;
 }
 
 /* ── Mail selection ────────────────────────────────────── */

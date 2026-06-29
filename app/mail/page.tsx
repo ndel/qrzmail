@@ -911,6 +911,10 @@ export default function MailPage() {
           <span>Signed in</span>
           <strong>{account}</strong>
         </div>
+        <button type="button" className="mail-compose-button" onClick={() => startCompose("new")} title="Compose new email">
+          <PenSquare size={16} aria-hidden="true" />
+          <span>Compose</span>
+        </button>
         <div className="mail-folder-heading">Mailboxes</div>
         <nav className="mail-folders">
           {folders.map((entry) => {
