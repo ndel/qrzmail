@@ -9,22 +9,27 @@ type User = { email: string; name: string; role?: string; subscription?: string 
 export default function NavUser() {
   const router = useRouter();
   const [user, setUser] = useState<User>(undefined as unknown as User);
+  const [hasWebmail, setHasWebmail] = useState(false);
   const [loading, setLoading] = useState(true);
   const fetchIdRef = useRef(0);
 
   const fetchUser = useCallback(() => {
     const id = ++fetchIdRef.current;
-    fetch("/api/account/me")
-      .then((r) => (r.ok ? r.json() : { user: null }))
-      .then((data) => {
+    Promise.all([
+      fetch("/api/account/me").then((r) => (r.ok ? r.json() : { user: null })),
+      fetch("/api/webmail/me").then((r) => r.ok),
+    ])
+      .then(([accountData, webmailOk]) => {
         if (id === fetchIdRef.current) {
-          setUser(data.user ?? null);
+          setUser(accountData.user ?? null);
+          setHasWebmail(webmailOk);
           setLoading(false);
         }
       })
       .catch(() => {
         if (id === fetchIdRef.current) {
           setUser(null);
+          setHasWebmail(false);
           setLoading(false);
         }
       });
@@ -42,6 +47,7 @@ export default function NavUser() {
   async function handleLogout() {
     await fetch("/api/account/logout", { method: "POST" });
     setUser(null);
+    setHasWebmail(false);
     router.push("/");
   }
 
@@ -54,8 +60,12 @@ export default function NavUser() {
       <>
         <Link href="/pricing">Pricing</Link>
         <Link href="/mail">Mail</Link>
-        <Link href="/domains">Domain panel</Link>
-        <Link href="/marketing">Marketing</Link>
+        {hasWebmail && (
+          <>
+            <Link href="/domains">Domain panel</Link>
+            <Link href="/marketing">Marketing</Link>
+          </>
+        )}
         {user.subscription === "free" && (
           <Link href="/subscribe" className="cta" style={{ fontSize: "13px", padding: "6px 14px" }}>
             Upgrade

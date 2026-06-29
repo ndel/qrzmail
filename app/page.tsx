@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import WebmailLoginForm from "@/app/components/webmail-login-form";
+import HomeSignupForm from "@/app/components/home-signup-form";
 
 export const metadata: Metadata = {
   title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
@@ -69,18 +69,18 @@ export default async function Home() {
           </div>
         </div>
 
-        {/* Right — sign in card */}
+        {/* Right — create account card */}
         <div>
           <div className="panel home-card">
             <div className="home-card-header">
               <span className="mark lg">Q</span>
               <div>
-                <h2>Sign in to your mailbox</h2>
-                <p>Access your email, calendar, and contacts</p>
+                <h2>Create your free mailbox</h2>
+                <p>Get a @qrzmail.com address in seconds</p>
               </div>
             </div>
 
-            <WebmailLoginForm loginFailed={false} />
+            <HomeSignupForm />
           </div>
         </div>
       </section>
