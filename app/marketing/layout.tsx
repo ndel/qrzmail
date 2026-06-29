@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Sidebar from "./sidebar";
+import MarketingBodyClass from "./body-class";
 
 export const metadata: Metadata = {
   title: "Marketing - QRZMail",
@@ -13,6 +14,7 @@ export default function MarketingLayout({
 }) {
   return (
     <div className="panel-layout">
+      <MarketingBodyClass />
       <Sidebar />
       <div className="panel-content">{children}</div>
     </div>
