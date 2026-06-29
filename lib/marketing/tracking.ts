@@ -20,14 +20,7 @@ export function injectTracking(
   trackingId: string,
   links: Array<{ id: string; url: string; redirectToken: string }>,
 ): string {
-  const pixelUrl = `${BASE_URL}/api/marketing/track/open?tid=${trackingId}`;
-  const pixel = `<img src="${pixelUrl}" width="1" height="1" alt="" style="display:none;" />`;
   let result = html;
-  if (result.includes("</body>")) {
-    result = result.replace("</body>", `${pixel}\n</body>`);
-  } else {
-    result += pixel;
-  }
   for (const link of links) {
     const redirectUrl = `${BASE_URL}/api/marketing/track/click?rid=${link.redirectToken}`;
     const escapedUrl = link.url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
