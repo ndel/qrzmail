@@ -2,7 +2,6 @@ import crypto from "crypto";
 import db from "@/lib/db";
 
 const BASE_URL = process.env.BASE_URL || "https://qrzmail.com";
-const MARKETING_BASE = `${BASE_URL}/marketing`;
 
 export function generateTrackingId(): string {
   return crypto.randomBytes(16).toString("hex");
@@ -21,7 +20,7 @@ export function injectTracking(
   trackingId: string,
   links: Array<{ id: string; url: string; redirectToken: string }>,
 ): string {
-  const pixelUrl = `${MARKETING_BASE}/api/track/open?tid=${trackingId}`;
+  const pixelUrl = `${BASE_URL}/api/marketing/track/open?tid=${trackingId}`;
   const pixel = `<img src="${pixelUrl}" width="1" height="1" alt="" style="display:none;" />`;
   let result = html;
   if (result.includes("</body>")) {
@@ -30,7 +29,7 @@ export function injectTracking(
     result += pixel;
   }
   for (const link of links) {
-    const redirectUrl = `${MARKETING_BASE}/api/track/click?rid=${link.redirectToken}`;
+    const redirectUrl = `${BASE_URL}/api/marketing/track/click?rid=${link.redirectToken}`;
     const escapedUrl = link.url.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     const hrefRegex = new RegExp(`href=["']${escapedUrl}["']`, "gi");
     result = result.replace(hrefRegex, `href="${redirectUrl}"`);

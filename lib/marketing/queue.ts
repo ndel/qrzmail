@@ -72,7 +72,7 @@ export function enqueueCampaign(campaignId: string): { enqueued: number; errors:
         }
 
         htmlBody = injectTracking(htmlBody, trackingId, links);
-        const unsubscribeUrl = `${BASE_URL}/marketing/api/unsubscribe?token=${unsubscribeToken}`;
+        const unsubscribeUrl = `${BASE_URL}/api/marketing/unsubscribe?token=${unsubscribeToken}`;
         htmlBody = injectUnsubscribeLink(htmlBody, unsubscribeUrl);
 
         insertQueue.run(queueId, campaignId, contact.id, campaign.provider_id, campaign.owner_id, subject, htmlBody, plainBody || null, trackingId);
