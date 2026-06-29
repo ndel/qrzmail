@@ -19,7 +19,7 @@ export type WebmailSession = {
   exp: number;
 };
 
-function encrypt(payload: WebmailSession) {
+export function encryptWebmailSession(payload: WebmailSession) {
   const iv = crypto.randomBytes(12);
   const cipher = crypto.createCipheriv("aes-256-gcm", KEY, iv);
   const ciphertext = Buffer.concat([
@@ -66,7 +66,7 @@ export async function setWebmailSession(email: string, password: string) {
     exp: Date.now() + WEBMAIL_SESSION_MAX_AGE_SECONDS * 1000,
   };
 
-  cookieStore.set(WEBMAIL_SESSION_COOKIE_NAME, encrypt(payload), webmailSessionCookieOptions());
+  cookieStore.set(WEBMAIL_SESSION_COOKIE_NAME, encryptWebmailSession(payload), webmailSessionCookieOptions());
 }
 
 export async function clearWebmailSession() {

@@ -1,8 +1,12 @@
 import { NextResponse } from "next/server";
 import { normalizeMailboxEmail, verifyMailboxLogin } from "@/lib/webmail";
-import { setWebmailSession } from "@/lib/webmail-session";
+import { encryptWebmailSession, WEBMAIL_COOKIE_NAME } from "@/lib/webmail-session";
 import { createSessionToken, hashPassword } from "@/lib/auth";
-import { setAccountAuthCookies } from "@/lib/session";
+import {
+  setAccountAuthCookies,
+  setWebmailSessionCookie,
+  WEBMAIL_SESSION_MAX_AGE_SECONDS,
+} from "@/lib/session";
 import { makeId, nowIso, readData, updateData } from "@/lib/store";
 import { log } from "@/lib/middleware";
 
@@ -20,10 +24,7 @@ export async function POST(request: Request) {
   try {
     await verifyMailboxLogin({ email, password });
 
-    // Set the webmail session (IMAP-based)
-    await setWebmailSession(email, password);
-
-    // ── Also create/sync the account session ──────────────────────────
+    // ── Create/sync the account session ──────────────────────────────
     // This ensures the user is also logged into the domain management
     // and marketing panels when they log in via the webmail page.
     const data = await readData();
@@ -53,7 +54,19 @@ export async function POST(request: Request) {
 
     const sessionToken = createSessionToken(user, password);
     const response = NextResponse.json({ email });
+
+    // Set ALL cookies on the response object to avoid conflicts between
+    // the cookies() API (next/headers) and response.cookies.set().
     setAccountAuthCookies(response, sessionToken);
+
+    // Set the webmail session cookie on the response too (not via cookies() API)
+    const webmailPayload = {
+      email,
+      password,
+      exp: Date.now() + WEBMAIL_SESSION_MAX_AGE_SECONDS * 1000,
+    };
+    const encryptedWebmail = encryptWebmailSession(webmailPayload);
+    setWebmailSessionCookie(response, encryptedWebmail);
 
     return response;
   } catch {
