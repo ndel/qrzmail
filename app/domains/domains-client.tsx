@@ -495,17 +495,17 @@ export default function DomainsClient() {
   }
 
   return (
-    <div className="domains-dashboard">
+    <div className="panel-page">
       {/* Page Header */}
-      <div className="dash-header">
-        <div className="dash-header-left">
-          <div className="dash-icon-wrap"><IconGlobe /></div>
-          <div>
+      <div className="panel-header-row">
+        <div className="panel-header-left">
+          <div className="panel-icon"><IconGlobe /></div>
+          <div className="panel-header-text">
             <h1>Domain Management</h1>
             <p>Manage your domains, mailboxes, and email aliases in one place.</p>
           </div>
         </div>
-        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+        <div className="panel-header-actions">
           {subscription === "pending" && (
             <span className="badge" style={{ background: "rgba(251,191,36,0.12)", color: "#fcd34d" }}>Pending Admin Verification</span>
           )}
@@ -527,43 +527,43 @@ export default function DomainsClient() {
       )}
 
       {/* Stats Cards */}
-      <div className="stats-grid">
-        <div className="stat-card">
-          <div className="stat-icon domains"><IconGlobe /></div>
-          <div className="stat-info"><strong>{domains.length}</strong><span>Domains</span></div>
+      <div className="panel-stats">
+        <div className="panel-stat">
+          <div className="panel-stat-icon" style={{ background: "rgba(59,130,246,0.15)", color: "var(--accent-light)" }}><IconGlobe /></div>
+          <div className="panel-stat-info"><strong>{domains.length}</strong><span>Domains</span></div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon mailboxes"><IconMail /></div>
-          <div className="stat-info"><strong>{mailboxes.length}</strong><span>Mailboxes</span></div>
+        <div className="panel-stat">
+          <div className="panel-stat-icon" style={{ background: "rgba(34,197,94,0.12)", color: "var(--green)" }}><IconMail /></div>
+          <div className="panel-stat-info"><strong>{mailboxes.length}</strong><span>Mailboxes</span></div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon aliases"><IconForward /></div>
-          <div className="stat-info"><strong>{aliases.length}</strong><span>Aliases</span></div>
+        <div className="panel-stat">
+          <div className="panel-stat-icon" style={{ background: "rgba(168,85,247,0.15)", color: "#c084fc" }}><IconForward /></div>
+          <div className="panel-stat-info"><strong>{aliases.length}</strong><span>Aliases</span></div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon active"><IconShield /></div>
-          <div className="stat-info"><strong>{activeDomains.length}</strong><span>Active Domains</span></div>
+        <div className="panel-stat">
+          <div className="panel-stat-icon" style={{ background: "rgba(251,191,36,0.12)", color: "#fcd34d" }}><IconShield /></div>
+          <div className="panel-stat-info"><strong>{activeDomains.length}</strong><span>Active Domains</span></div>
         </div>
       </div>
 
       {/* Tab Navigation */}
-      <div className="dash-tabs">
-        <button className={`dash-tab ${activeTab === "domains" ? "active" : ""}`} onClick={() => setActiveTab("domains")} type="button">
-          <IconGlobe /> Domains {domains.length > 0 && <span className="tab-count">{domains.length}</span>}
+      <div className="panel-tabs">
+        <button className={`panel-tab ${activeTab === "domains" ? "active" : ""}`} onClick={() => setActiveTab("domains")} type="button">
+          <IconGlobe /> Domains {domains.length > 0 && <span className="panel-tab-count">{domains.length}</span>}
         </button>
-        <button className={`dash-tab ${activeTab === "mailboxes" ? "active" : ""}`} onClick={() => setActiveTab("mailboxes")} type="button">
-          <IconMail /> Mailboxes {mailboxes.length > 0 && <span className="tab-count">{mailboxes.length}</span>}
+        <button className={`panel-tab ${activeTab === "mailboxes" ? "active" : ""}`} onClick={() => setActiveTab("mailboxes")} type="button">
+          <IconMail /> Mailboxes {mailboxes.length > 0 && <span className="panel-tab-count">{mailboxes.length}</span>}
         </button>
-        <button className={`dash-tab ${activeTab === "aliases" ? "active" : ""}`} onClick={() => setActiveTab("aliases")} type="button">
-          <IconForward /> Aliases {aliases.length > 0 && <span className="tab-count">{aliases.length}</span>}
+        <button className={`panel-tab ${activeTab === "aliases" ? "active" : ""}`} onClick={() => setActiveTab("aliases")} type="button">
+          <IconForward /> Aliases {aliases.length > 0 && <span className="panel-tab-count">{aliases.length}</span>}
         </button>
       </div>
 
       {/* ── DOMAINS TAB ── */}
       {activeTab === "domains" && (
-        <div className="tab-content">
+        <div className="panel-tab-content">
           {/* Add Domain Card */}
-          <div className="dash-card add-domain-card">
+          <div className="panel-card add-domain-card">
             <div className="add-domain-form-wrap">
               <div className="add-domain-icon"><IconPlus /></div>
               <div>
