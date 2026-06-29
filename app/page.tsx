@@ -154,14 +154,6 @@ export default async function Home() {
               with standard IMAP and SMTP over TLS.
             </p>
           </div>
-          <div className="panel portal-card">
-            <div className="portal-icon">⚙️</div>
-            <h3>Domain Dashboard</h3>
-            <p>
-              Manage domains, mailboxes, aliases, and DNS records from a
-              single, intuitive control panel.
-            </p>
-          </div>
         </div>
       </section>
 
