@@ -47,6 +47,8 @@ const PLANS = [
       "IMAP / POP3 / SMTP",
       "Webmail access",
       "Calendar & contacts",
+      "Email marketing (up to 5,000 emails/mo)",
+      "Contact management",
       "Priority email support",
     ],
   },
@@ -70,6 +72,9 @@ const PLANS = [
       "IMAP / POP3 / SMTP",
       "Webmail access",
       "Calendar & contacts",
+      "Email marketing (up to 25,000 emails/mo)",
+      "Contact management & segments",
+      "Campaign analytics",
       "Priority support",
       "Migration assistance",
     ],
@@ -94,6 +99,10 @@ const PLANS = [
       "Catch-all & forwarding",
       "API access",
       "Webmail access",
+      "Email marketing (up to 100,000 emails/mo)",
+      "Contact management & segments",
+      "Campaign analytics & A/B testing",
+      "Custom email templates",
       "Migration assistance",
       "Priority support",
     ],
@@ -113,6 +122,12 @@ const COMPARISON_ROWS = [
   { label: "Webmail", free: "✓", starter: "✓", business: "✓", pro: "✓" },
   { label: "Calendar & contacts", free: "✓", starter: "✓", business: "✓", pro: "✓" },
   { label: "SPF / DKIM / DMARC", free: "✓", starter: "✓", business: "✓", pro: "✓" },
+  { label: "Email marketing", free: "—", starter: "Up to 5,000/mo", business: "Up to 25,000/mo", pro: "Up to 100,000/mo" },
+  { label: "Contact management", free: "—", starter: "✓", business: "✓", pro: "✓" },
+  { label: "Contact segments", free: "—", starter: "—", business: "✓", pro: "✓" },
+  { label: "Campaign analytics", free: "—", starter: "—", business: "✓", pro: "✓" },
+  { label: "A/B testing", free: "—", starter: "—", business: "—", pro: "✓" },
+  { label: "Custom email templates", free: "—", starter: "—", business: "—", pro: "✓" },
   { label: "Migration assistance", free: "—", starter: "—", business: "✓", pro: "✓" },
   { label: "Support", free: "Community", starter: "Priority email", business: "Priority", pro: "Priority" },
 ];
@@ -184,7 +199,8 @@ export default function PricingSection() {
           <h2 style={{ marginTop: "10px" }}>Plans for every need</h2>
           <p>
             Start with 5 free mailboxes on your own domain. Upgrade when you
-            need more storage, more accounts, or priority support.
+            need more storage, more accounts, email marketing campaigns, or
+            priority support.
           </p>
         </div>
       </div>
@@ -263,7 +279,8 @@ export default function PricingSection() {
 
       <p className="pricing-footnote">
         All plans include encrypted email in transit, spam filtering, and
-        access to the QRZMail webmail portal. Need a custom plan?{" "}
+        access to the QRZMail webmail portal. Email marketing features are
+        available on paid plans. Need a custom plan?{" "}
         <Link href="mailto:admin@qrzmail.com" className="text-link">
           Contact us
         </Link>.

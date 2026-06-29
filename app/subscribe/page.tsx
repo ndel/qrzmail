@@ -21,6 +21,8 @@ const PLAN_INFO: Record<PlanId, { name: string; monthly: number; features: strin
       "10 GB storage per mailbox",
       "Unlimited aliases",
       "Catch-all & forwarding",
+      "Email marketing (up to 5,000 emails/mo)",
+      "Contact management",
       "Priority email support",
     ],
   },
@@ -33,6 +35,9 @@ const PLAN_INFO: Record<PlanId, { name: string; monthly: number; features: strin
       "25 GB storage per mailbox",
       "Shared mailboxes",
       "Catch-all & forwarding",
+      "Email marketing (up to 25,000 emails/mo)",
+      "Contact management & segments",
+      "Campaign analytics",
       "Priority support",
       "Migration assistance",
     ],
@@ -47,6 +52,10 @@ const PLAN_INFO: Record<PlanId, { name: string; monthly: number; features: strin
       "Shared mailboxes",
       "Unlimited aliases",
       "API access",
+      "Email marketing (up to 100,000 emails/mo)",
+      "Contact management & segments",
+      "Campaign analytics & A/B testing",
+      "Custom email templates",
       "Migration assistance",
       "Priority support",
     ],
@@ -179,7 +188,7 @@ export default function SubscribePage() {
       ) : (
         <form className="panel form-card" onSubmit={handleSubscribe}>
           <h1>Upgrade Your Plan</h1>
-          <p>Get more mailboxes, more storage, and priority support.</p>
+          <p>Get more mailboxes, more storage, email marketing, and priority support.</p>
 
           {state.type === "error" && (
             <div className="message error">{state.message}</div>

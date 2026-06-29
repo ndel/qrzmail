@@ -3,25 +3,29 @@ import Link from "next/link";
 import HomeSignupForm from "@/app/components/home-signup-form";
 
 export const metadata: Metadata = {
-  title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
+  title: "QRZMail – Secure Webmail, Email Hosting & Email Marketing",
   description:
-    "Create a free qrzmail.com mailbox, access secure webmail, or set up custom domain email hosting with IMAP/SMTP, calendar, contacts, SPF, DKIM & DMARC. Fast, private, and reliable.",
+    "Create a free qrzmail.com mailbox, access secure webmail, set up custom domain email hosting, or launch email marketing campaigns — all from one platform. IMAP/SMTP, calendar, contacts, SPF, DKIM & DMARC included.",
   keywords: [
     "QRZMail webmail",
     "free email hosting",
     "custom domain email",
     "business email hosting",
     "secure webmail",
+    "email marketing platform",
+    "email campaigns",
     "IMAP SMTP email",
     "DKIM SPF DMARC",
     "qrzmail.com",
     "free domain email",
     "email hosting 5GB",
+    "bulk email marketing",
+    "newsletter tool",
   ],
   openGraph: {
-    title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
+    title: "QRZMail – Secure Webmail, Email Hosting & Email Marketing",
     description:
-      "Create a free qrzmail.com mailbox, access secure webmail, or set up custom domain email hosting with IMAP/SMTP, calendar, contacts, SPF, DKIM & DMARC.",
+      "Create a free qrzmail.com mailbox, access secure webmail, set up custom domain email hosting, or launch email marketing campaigns — all from one platform.",
   },
 };
 
@@ -53,19 +57,21 @@ export default async function Home() {
         <div className="home-copy">
           <span className="eyebrow">✦ QRZMail</span>
           <h1 className="home-headline">
-            Email that<br />works for you.
+            Email, hosting &<br />marketing — unified.
           </h1>
           <p className="home-sub">
-            Fast, private webmail for qrzmail.com addresses — and a
-            complete hosting platform for businesses running email
-            on their own domain.
+            Secure webmail, custom domain email hosting, and
+            powerful email marketing campaigns — all from one
+            platform. Send newsletters, automate follow-ups, and
+            grow your audience alongside your inbox.
           </p>
           <div className="home-pills">
             <span className="home-pill">📬 Inbox & folders</span>
             <span className="home-pill">📅 Calendar</span>
             <span className="home-pill">👤 Contacts</span>
-            <span className="home-pill">🔒 Encrypted in transit</span>
+            <span className="home-pill">📧 Email campaigns</span>
             <span className="home-pill">🌐 Custom domains</span>
+            <span className="home-pill">🔒 Encrypted in transit</span>
           </div>
         </div>
 
@@ -92,8 +98,9 @@ export default async function Home() {
             <span className="eyebrow">✦ Everything you need</span>
             <h2 style={{ marginTop: "10px" }}>A complete email platform</h2>
             <p>
-              From personal webmail to full business hosting — QRZMail gives you
-              the tools to manage email professionally.
+              From personal webmail and business hosting to email marketing
+              campaigns — QRZMail gives you the tools to manage all your
+              email in one place.
             </p>
           </div>
         </div>
@@ -121,6 +128,14 @@ export default async function Home() {
             <p>
               Host email on your own domain with unlimited aliases, catch-all
               addresses, and full DNS management.
+            </p>
+          </div>
+          <div className="panel portal-card">
+            <div className="portal-icon">📧</div>
+            <h3>Email Marketing</h3>
+            <p>
+              Create, send, and track email campaigns with drag-and-drop
+              templates, contact lists, segments, and real-time analytics.
             </p>
           </div>
           <div className="panel portal-card">
