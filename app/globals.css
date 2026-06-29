@@ -2675,6 +2675,17 @@ code {
   font-weight: 700;
 }
 
+.mail-forgot-link {
+  text-align: center;
+  color: var(--accent-light);
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.mail-forgot-link:hover {
+  text-decoration: underline;
+}
+
 .mail-shell {
   min-height: 100vh;
   display: grid;

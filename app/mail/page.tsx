@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
@@ -883,6 +884,9 @@ export default function MailPage() {
           <button className="mail-primary" disabled={busy}>
             {busy ? "Signing in..." : "Sign in"}
           </button>
+          <Link href="/forgot-password" className="mail-forgot-link">
+            Forgot password?
+          </Link>
         </form>
       </div>
     );
