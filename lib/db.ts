@@ -206,6 +206,7 @@ db.exec(`
     bounce_count INTEGER NOT NULL DEFAULT 0,
     unsubscribe_count INTEGER NOT NULL DEFAULT 0,
     complaint_count INTEGER NOT NULL DEFAULT 0,
+    send_rate INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
@@ -282,5 +283,10 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_marketing_feedback_email ON marketing_feedback(email);
   CREATE INDEX IF NOT EXISTS idx_marketing_segments_owner ON marketing_segments(owner_id);
 `);
+
+// Migrations for columns added after initial schema
+try {
+  db.exec("ALTER TABLE marketing_campaigns ADD COLUMN send_rate INTEGER NOT NULL DEFAULT 0");
+} catch { /* column already exists */ }
 
 export default db;

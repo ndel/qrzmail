@@ -47,15 +47,38 @@ export async function PUT(req: NextRequest) {
     const user = await getCurrentUser();
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     const body = await req.json();
-    const { id, action } = body;
-    if (!id || !action) return NextResponse.json({ error: "id and action are required" }, { status: 400 });
+    const { id, action, send_rate } = body;
+    if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
 
     const campaign = db.prepare("SELECT * FROM marketing_campaigns WHERE id = ? AND owner_id = ?").get(id, user.id) as any;
     if (!campaign) return NextResponse.json({ error: "Campaign not found" }, { status: 404 });
 
+    // Allow updating send_rate independently
+    if (send_rate !== undefined) {
+      db.prepare("UPDATE marketing_campaigns SET send_rate = ?, updated_at = datetime('now') WHERE id = ? AND owner_id = ?").run(send_rate, id, user.id);
+      const updated = db.prepare("SELECT * FROM marketing_campaigns WHERE id = ? AND owner_id = ?").get(id, user.id);
+      return NextResponse.json(updated);
+    }
+
+    if (!action) return NextResponse.json({ error: "action is required" }, { status: 400 });
+
     switch (action) {
       case "send": {
+        // Allow sending from draft or scheduled
+        if (campaign.status !== "draft" && campaign.status !== "scheduled") {
+          return NextResponse.json({ error: `Cannot send campaign with status '${campaign.status}'` }, { status: 400 });
+        }
         const result = enqueueCampaign(id);
+        return NextResponse.json({ success: true, enqueued: result.enqueued, errors: result.errors });
+      }
+      case "send_now": {
+        // Send immediately regardless of schedule - enqueue and set status to sending
+        if (campaign.status !== "draft" && campaign.status !== "scheduled") {
+          return NextResponse.json({ error: `Cannot send campaign with status '${campaign.status}'` }, { status: 400 });
+        }
+        const result = enqueueCampaign(id);
+        // Override status to 'sending' immediately (enqueueCampaign sets it to 'scheduled')
+        db.prepare("UPDATE marketing_campaigns SET status = 'sending', started_at = datetime('now'), updated_at = datetime('now') WHERE id = ?").run(id);
         return NextResponse.json({ success: true, enqueued: result.enqueued, errors: result.errors });
       }
       case "pause": {

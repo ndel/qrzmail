@@ -96,7 +96,12 @@ export default function CampaignsPage() {
                   <td>{c.click_count || 0}</td>
                   <td>
                     <div style={{ display: "flex", gap: "0.35rem" }}>
-                      {c.status === "draft" && <button className="btn btn-primary btn-sm" onClick={() => handleAction(c.id, "send")}>Send</button>}
+                      {(c.status === "draft" || c.status === "scheduled") && (
+                        <>
+                          <button className="btn btn-primary btn-sm" onClick={() => handleAction(c.id, "send_now")}>Send Now</button>
+                          <button className="btn btn-secondary btn-sm" onClick={() => handleAction(c.id, "send")}>Schedule</button>
+                        </>
+                      )}
                       {c.status === "sending" && <button className="btn btn-secondary btn-sm" onClick={() => handleAction(c.id, "pause")}>Pause</button>}
                       {c.status === "paused" && <button className="btn btn-primary btn-sm" onClick={() => handleAction(c.id, "resume")}>Resume</button>}
                       {(c.status === "draft" || c.status === "completed" || c.status === "failed") && (

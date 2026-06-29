@@ -92,14 +92,45 @@ export function enqueueCampaign(campaignId: string): { enqueued: number; errors:
 }
 
 export async function processQueue(batchSize: number = 50): Promise<{ sent: number; failed: number }> {
+  // Get pending items grouped by campaign, respecting per-campaign rate limits
   const pending = db
     .prepare("SELECT q.* FROM marketing_queue q WHERE q.status = 'pending' LIMIT ?")
     .all(batchSize) as any[];
 
+  if (pending.length === 0) return { sent: 0, failed: 0 };
+
+  // Group pending items by campaign_id and check rate limits
+  const campaignIds = [...new Set(pending.map((p) => p.campaign_id))];
+  const campaigns = new Map<string, any>();
+  for (const cid of campaignIds) {
+    const c = db.prepare("SELECT id, send_rate, status FROM marketing_campaigns WHERE id = ?").get(cid) as any;
+    if (c) campaigns.set(cid, c);
+  }
+
+  // For campaigns with rate limits, check how many were sent in the last 60 seconds
+  const oneMinuteAgo = new Date(Date.now() - 60000).toISOString().replace("T", " ").replace("Z", "");
+  const rateLimitedCampaigns = new Set<string>();
+
+  for (const [cid, campaign] of campaigns) {
+    if (campaign.send_rate > 0) {
+      const recentCount = (db.prepare(
+        "SELECT COUNT(*) as count FROM marketing_queue WHERE campaign_id = ? AND status = 'sent' AND sent_at >= ?"
+      ).get(cid, oneMinuteAgo) as any).count;
+
+      if (recentCount >= campaign.send_rate) {
+        rateLimitedCampaigns.add(cid);
+      }
+    }
+  }
+
+  // Filter out items from rate-limited campaigns
+  const toProcess = pending.filter((p) => !rateLimitedCampaigns.has(p.campaign_id));
+
   let sent = 0;
   let failed = 0;
+  const updatedCampaigns = new Set<string>();
 
-  for (const item of pending) {
+  for (const item of toProcess) {
     try {
       const provider = db.prepare("SELECT * FROM marketing_providers WHERE id = ?").get(item.provider_id) as any;
       const contact = db.prepare("SELECT * FROM marketing_contacts WHERE id = ?").get(item.contact_id) as any;
@@ -121,23 +152,25 @@ export async function processQueue(batchSize: number = 50): Promise<{ sent: numb
         }
         failed++;
       }
+      updatedCampaigns.add(item.campaign_id);
     } catch (err: any) {
       db.prepare("UPDATE marketing_queue SET status = 'failed', error_message = ? WHERE id = ?").run(err.message, item.id);
       failed++;
+      updatedCampaigns.add(item.campaign_id);
     }
   }
 
-  if (pending.length > 0) {
-    const campaignId = pending[0].campaign_id;
+  // Update campaign stats for all affected campaigns
+  for (const campaignId of updatedCampaigns) {
     db.prepare(
-      `UPDATE marketing_campaigns SET 
+      `UPDATE marketing_campaigns SET
         sent_count = (SELECT COUNT(*) FROM marketing_queue WHERE campaign_id = ? AND status = 'sent'),
-        status = CASE 
+        status = CASE
           WHEN (SELECT COUNT(*) FROM marketing_queue WHERE campaign_id = ? AND status IN ('pending','sending')) = 0 THEN 'completed'
           ELSE 'sending'
         END,
         started_at = COALESCE(started_at, datetime('now')),
-        completed_at = CASE 
+        completed_at = CASE
           WHEN (SELECT COUNT(*) FROM marketing_queue WHERE campaign_id = ? AND status IN ('pending','sending')) = 0 THEN datetime('now')
           ELSE NULL
         END,
