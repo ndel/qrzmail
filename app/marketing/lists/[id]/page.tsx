@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface ListDetail {
   id: string;
@@ -21,6 +21,101 @@ interface Contact {
   created_at: string;
 }
 
+interface CsvRow {
+  [key: string]: string;
+}
+
+interface ColumnMapping {
+  [csvColumn: string]: "email" | "name" | "company" | "phone" | "skip";
+}
+
+const CONTACT_FIELDS: { value: string; label: string }[] = [
+  { value: "email", label: "Email (required)" },
+  { value: "name", label: "Name" },
+  { value: "company", label: "Company" },
+  { value: "phone", label: "Phone" },
+  { value: "skip", label: "\u2014 Skip column" },
+];
+
+function parseCsv(text: string): { headers: string[]; rows: CsvRow[] } {
+  const lines = text.split("\n").filter((l) => l.trim());
+  if (lines.length === 0) return { headers: [], rows: [] };
+
+  const parseLine = (line: string): string[] => {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const ch = line[i];
+      if (ch === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (ch === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += ch;
+      }
+    }
+    result.push(current.trim());
+    return result;
+  };
+
+  const headers = parseLine(lines[0]);
+  const rows = lines.slice(1).map((line) => {
+    const values = parseLine(line);
+    const row: CsvRow = {};
+    headers.forEach((h, i) => {
+      row[h] = values[i] || "";
+    });
+    return row;
+  });
+
+  return { headers, rows };
+}
+
+function autoDetectMapping(headers: string[]): ColumnMapping {
+  const mapping: ColumnMapping = {};
+  const lowerHeaders = headers.map((h) => h.toLowerCase().replace(/[^a-z]/g, ""));
+
+  const fieldPatterns: Record<string, RegExp[]> = {
+    email: [/^email/, /^e-?mail/, /^mail/],
+    name: [/^name/, /^full.?name/, /^contact.?name/, /^first.?name/, /^last.?name/, /^customer.?name/],
+    company: [/^company/, /^organization/, /^org/, /^business/, /^firm/, /^employer/],
+    phone: [/^phone/, /^mobile/, /^telephone/, /^tel/, /^cell/, /^contact.?number/, /^phone.?number/],
+  };
+
+  const assigned = new Set<string>();
+
+  for (const [field, patterns] of Object.entries(fieldPatterns)) {
+    for (let i = 0; i < headers.length; i++) {
+      if (assigned.has(headers[i])) continue;
+      if (patterns.some((p) => p.test(lowerHeaders[i]))) {
+        mapping[headers[i]] = field as any;
+        assigned.add(headers[i]);
+        break;
+      }
+    }
+  }
+
+  for (const h of headers) {
+    if (!mapping[h]) {
+      mapping[h] = "skip";
+    }
+  }
+
+  const hasEmail = Object.values(mapping).includes("email");
+  if (!hasEmail && headers.length > 0) {
+    mapping[headers[0]] = "email";
+  }
+
+  return mapping;
+}
+
 export default function ListDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -32,10 +127,14 @@ export default function ListDetailPage() {
   const [editName, setEditName] = useState("");
   const [editDesc, setEditDesc] = useState("");
 
-  // CSV import
-  const [csvText, setCsvText] = useState("");
+  // CSV import with mapping
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [csvPreview, setCsvPreview] = useState<CsvRow[]>([]);
+  const [columnMapping, setColumnMapping] = useState<ColumnMapping>({});
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
+  const [csvFileName, setCsvFileName] = useState("");
 
   // Contacts
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -95,14 +194,59 @@ export default function ListDetailPage() {
     setEditing(false);
   };
 
-  const handleImport = async () => {
-    const lines = csvText.split("\n").filter((l) => l.trim());
-    const contactsData = lines.map((line) => {
-      const parts = line.split(",").map((s) => s.trim());
-      return { email: parts[0], name: parts[1] || "", company: parts[2] || "" };
-    }).filter((c) => c.email);
+  // CSV file handling
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCsvFileName(file.name);
+    setImportResult(null);
 
-    if (contactsData.length === 0) return;
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      const text = evt.target?.result as string;
+      const { headers, rows } = parseCsv(text);
+      setCsvHeaders(headers);
+      setCsvPreview(rows.slice(0, 5));
+      const detected = autoDetectMapping(headers);
+      setColumnMapping(detected);
+    };
+    reader.readAsText(file);
+  };
+
+  const handleMappingChange = (csvColumn: string, value: string) => {
+    const newMapping = { ...columnMapping };
+    for (const [col, mapped] of Object.entries(newMapping)) {
+      if (mapped === value && value !== "skip" && col !== csvColumn) {
+        newMapping[col] = "skip";
+      }
+    }
+    newMapping[csvColumn] = value as any;
+    setColumnMapping(newMapping);
+  };
+
+  const handleImport = async () => {
+    const file = fileInputRef.current?.files?.[0];
+    if (!file) return;
+
+    const text = await file.text();
+    const { headers, rows } = parseCsv(text);
+
+    const contactsData = rows.map((row) => {
+      const contact: Record<string, string> = {};
+      for (const header of headers) {
+        const field = columnMapping[header];
+        if (field && field !== "skip") {
+          contact[field] = row[header] || "";
+        }
+      }
+      return contact;
+    }).filter((c) => c.email && c.email.trim());
+
+    if (contactsData.length === 0) {
+      setImportResult({ error: "No rows with valid email addresses found." });
+      return;
+    }
+
     setImporting(true);
     setImportResult(null);
     try {
@@ -113,7 +257,11 @@ export default function ListDetailPage() {
       });
       const data = await res.json();
       setImportResult(data);
-      setCsvText("");
+      if (fileInputRef.current) fileInputRef.current.value = "";
+      setCsvFileName("");
+      setCsvHeaders([]);
+      setCsvPreview([]);
+      setColumnMapping({});
       loadList();
       loadContacts(1);
       setPage(1);
@@ -129,6 +277,8 @@ export default function ListDetailPage() {
     loadContacts(page);
     loadList();
   };
+
+  const hasEmailMapped = Object.values(columnMapping).includes("email");
 
   if (loading) return <main className="marketing-content"><p>Loading...</p></main>;
   if (!list) return <main className="marketing-content"><p>List not found</p></main>;
@@ -238,8 +388,8 @@ export default function ListDetailPage() {
                   {contacts.map((c) => (
                     <tr key={c.id}>
                       <td>{c.email}</td>
-                      <td>{c.name || "—"}</td>
-                      <td>{c.company || "—"}</td>
+                      <td>{c.name || "\u2014"}</td>
+                      <td>{c.company || "\u2014"}</td>
                       <td><span className={`badge badge-${c.status}`}>{c.status}</span></td>
                       <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.created_at}</td>
                       <td>
@@ -252,9 +402,9 @@ export default function ListDetailPage() {
             </div>
             {pages > 1 && (
               <div style={{ display: "flex", justifyContent: "center", gap: "0.5rem", marginTop: "1rem" }}>
-                <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>← Prev</button>
+                <button className="btn btn-secondary btn-sm" disabled={page <= 1} onClick={() => setPage(page - 1)}>{'\u2190'} Prev</button>
                 <span style={{ padding: "0.35rem 0.5rem", fontSize: "0.85rem", color: "#64748b" }}>Page {page} of {pages}</span>
-                <button className="btn btn-secondary btn-sm" disabled={page >= pages} onClick={() => setPage(page + 1)}>Next →</button>
+                <button className="btn btn-secondary btn-sm" disabled={page >= pages} onClick={() => setPage(page + 1)}>Next {'\u2192'}</button>
               </div>
             )}
           </>
@@ -263,24 +413,142 @@ export default function ListDetailPage() {
 
       {/* Import Section */}
       <div className="section">
-        <h2 className="section-title">Import Contacts</h2>
+        <h2 className="section-title">Import Contacts from CSV</h2>
         <div className="card">
-          <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "0.75rem" }}>
-            Paste contacts as CSV: <code>email, name, company</code> (one per line)
-          </p>
-          <textarea
-            value={csvText}
-            onChange={(e) => setCsvText(e.target.value)}
-            placeholder={`john@example.com, John Doe, Acme Inc\njane@example.com, Jane Smith, Beta Corp`}
-            style={{ width: "100%", minHeight: "120px", padding: "0.5rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", fontFamily: "monospace", boxSizing: "border-box" }}
-          />
-          <button className="btn btn-primary" style={{ marginTop: "0.75rem" }} onClick={handleImport} disabled={!csvText.trim() || importing}>
-            {importing ? "Importing..." : "Import Contacts"}
-          </button>
-          {importResult && (
-            <p style={{ margin: "0.5rem 0 0", fontSize: "0.85rem", color: importResult.error ? "#991b1b" : "#166534" }}>
-              {importResult.error ? `Error: ${importResult.error}` : `✅ Imported: ${importResult.imported}, Skipped: ${importResult.skipped}`}
+          {/* Step 1: Upload */}
+          <div style={{ marginBottom: csvHeaders.length > 0 ? "1.25rem" : 0 }}>
+            <p style={{ fontSize: "0.85rem", color: "#64748b", marginBottom: "0.75rem" }}>
+              Upload a CSV file with your contacts. You'll be able to map columns to contact fields.
             </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,.tsv,.txt"
+                onChange={handleFileSelect}
+                style={{ fontSize: "0.85rem" }}
+              />
+              {csvFileName && (
+                <span style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                  Selected: {csvFileName}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* Step 2: Column Mapping */}
+          {csvHeaders.length > 0 && (
+            <>
+              <div style={{ marginBottom: "1.25rem" }}>
+                <h3 style={{ fontSize: "0.95rem", fontWeight: 600, margin: "0 0 0.5rem 0" }}>Column Mapping</h3>
+                <p style={{ fontSize: "0.8rem", color: "#64748b", marginBottom: "0.75rem" }}>
+                  Map each CSV column to a contact field. At least one column must be mapped to <strong>Email</strong>.
+                </p>
+                <div style={{ overflowX: "auto" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.85rem" }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: "left", padding: "0.4rem 0.6rem", borderBottom: "2px solid #e2e8f0", color: "#64748b", fontWeight: 600, whiteSpace: "nowrap" }}>CSV Column</th>
+                        <th style={{ textAlign: "left", padding: "0.4rem 0.6rem", borderBottom: "2px solid #e2e8f0", color: "#64748b", fontWeight: 600, whiteSpace: "nowrap" }}>Map to Field</th>
+                        {csvPreview.length > 0 && csvPreview[0] && csvHeaders.slice(0, 3).map((h) => (
+                          <th key={h} style={{ textAlign: "left", padding: "0.4rem 0.6rem", borderBottom: "2px solid #e2e8f0", color: "#64748b", fontWeight: 600, fontSize: "0.8rem", whiteSpace: "nowrap" }}>Sample: {h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {csvHeaders.map((header) => (
+                        <tr key={header}>
+                          <td style={{ padding: "0.4rem 0.6rem", borderBottom: "1px solid #f1f5f9", fontWeight: 500, whiteSpace: "nowrap" }}>{header}</td>
+                          <td style={{ padding: "0.4rem 0.6rem", borderBottom: "1px solid #f1f5f9" }}>
+                            <select
+                              value={columnMapping[header] || "skip"}
+                              onChange={(e) => handleMappingChange(header, e.target.value)}
+                              style={{ padding: "0.25rem 0.4rem", border: "1px solid #cbd5e1", borderRadius: "4px", fontSize: "0.8rem" }}
+                            >
+                              {CONTACT_FIELDS.map((f) => (
+                                <option key={f.value} value={f.value}>{f.label}</option>
+                              ))}
+                            </select>
+                          </td>
+                          {csvPreview[0] && csvHeaders.slice(0, 3).map((h) => (
+                            <td key={h} style={{ padding: "0.4rem 0.6rem", borderBottom: "1px solid #f1f5f9", fontSize: "0.8rem", color: "#64748b", maxWidth: "180px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                              {csvPreview[0][header] || "\u2014"}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Preview rows */}
+              {csvPreview.length > 1 && (
+                <div style={{ marginBottom: "1.25rem" }}>
+                  <h3 style={{ fontSize: "0.95rem", fontWeight: 600, margin: "0 0 0.5rem 0" }}>Preview ({csvPreview.length} of {csvPreview.length} rows shown)</h3>
+                  <div style={{ overflowX: "auto" }}>
+                    <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "0.8rem" }}>
+                      <thead>
+                        <tr>
+                          {csvHeaders.map((h) => (
+                            <th key={h} style={{ textAlign: "left", padding: "0.3rem 0.5rem", borderBottom: "2px solid #e2e8f0", color: "#64748b", fontWeight: 600, whiteSpace: "nowrap", fontSize: "0.75rem" }}>
+                              {h}
+                              {columnMapping[h] !== "skip" && (
+                                <span style={{ marginLeft: "4px", color: "#6366f1", fontWeight: 400 }}>({columnMapping[h]})</span>
+                              )}
+                            </th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {csvPreview.map((row, ri) => (
+                          <tr key={ri}>
+                            {csvHeaders.map((h) => (
+                              <td key={h} style={{ padding: "0.3rem 0.5rem", borderBottom: "1px solid #f1f5f9", maxWidth: "150px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                                {row[h] || "\u2014"}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Import button */}
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleImport}
+                  disabled={!hasEmailMapped || importing}
+                >
+                  {importing ? "Importing..." : `Import Contacts from CSV`}
+                </button>
+                {!hasEmailMapped && (
+                  <span style={{ fontSize: "0.8rem", color: "#991b1b" }}>
+                    Please map at least one column to Email
+                  </span>
+                )}
+              </div>
+            </>
+          )}
+
+          {importResult && (
+            <div style={{ marginTop: "0.75rem", padding: "0.75rem", borderRadius: "6px", fontSize: "0.85rem", background: importResult.error ? "#fef2f2" : "#f0fdf4", border: `1px solid ${importResult.error ? "#fecaca" : "#bbf7d0"}`, color: importResult.error ? "#991b1b" : "#166534" }}>
+              {importResult.error ? (
+                <p style={{ margin: 0 }}>Error: {importResult.error}</p>
+              ) : (
+                <p style={{ margin: 0 }}>
+                  {'\u2705'} Import complete &mdash; <strong>{importResult.imported}</strong> imported, <strong>{importResult.skipped}</strong> skipped
+                  {importResult.errors?.length > 0 && (
+                    <span style={{ display: "block", marginTop: "0.25rem", fontSize: "0.8rem", color: "#991b1b" }}>
+                      {importResult.errors.length} error(s) occurred
+                    </span>
+                  )}
+                </p>
+              )}
+            </div>
           )}
         </div>
       </div>
