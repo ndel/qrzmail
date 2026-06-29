@@ -36,6 +36,7 @@ import {
   RefreshCw,
   RemoveFormatting,
   Redo2,
+  PenSquare,
   Save,
   Search,
   Send,
@@ -964,6 +965,10 @@ export default function MailPage() {
             </label>
           </div>
           <div className="mail-toolbar-actions" aria-label="Message actions">
+            <button type="button" onClick={() => startCompose("new")} disabled={busy} title="New message">
+              <PenSquare size={15} aria-hidden="true" />
+            </button>
+            <span className="mail-toolbar-divider" aria-hidden="true" />
             <button type="button" onClick={() => runBulk("read")} disabled={busy || (!selectedUids.length && !selectedUid)} title="Mark as read">
               <MailOpen size={15} aria-hidden="true" />
             </button>

@@ -6092,8 +6092,7 @@ code {
   padding: 6px 12px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  gap: 4px;
   min-height: 48px;
 }
 
@@ -6483,10 +6482,10 @@ code {
   background: var(--bg2);
   border: 1px solid var(--panel-border);
   color: var(--ink);
-  padding: 6px 10px;
+  padding: 4px 8px;
   border-radius: 6px;
-  font-size: 13px;
-  width: 160px;
+  font-size: 12px;
+  width: 120px;
   box-sizing: border-box;
   transition: all 0.15s;
 }
@@ -6500,7 +6499,7 @@ code {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
-  width: 200px;
+  width: 150px;
 }
 
 .mail-route .mail-search button {
