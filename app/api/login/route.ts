@@ -3,6 +3,7 @@ import tls from "node:tls";
 import crypto from "node:crypto";
 import { createSessionToken, hashPassword } from "@/lib/auth";
 import { generateCsrfToken, setAccountAuthCookies } from "@/lib/session";
+import { setWebmailSession } from "@/lib/webmail-session";
 import { readData, updateData } from "@/lib/store";
 import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
 
@@ -149,10 +150,14 @@ export async function POST(request: Request) {
     log("info", "Auto-created domain management account via webmail login", { email });
   }
 
-  const sessionToken = createSessionToken(user);
+  const sessionToken = createSessionToken(user, password);
   const csrfToken = generateCsrfToken();
   const response = NextResponse.json({ webmailUrl: WEBMAIL_URL, csrfToken });
   setAccountAuthCookies(response, sessionToken, csrfToken);
+
+  // Also create a webmail session so the user is automatically logged into
+  // the webmail without needing to enter their password again.
+  await setWebmailSession(email, password).catch(() => {});
 
   logResponse(request, response, startTime);
   return response;

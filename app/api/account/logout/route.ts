@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { clearSessionCookie } from "@/lib/auth";
+import { clearWebmailSession } from "@/lib/webmail-session";
 import { log, logRequest, logResponse } from "@/lib/middleware";
 
 export const runtime = "nodejs";
@@ -9,6 +10,7 @@ export async function POST(request: Request) {
   logRequest(request, startTime);
 
   await clearSessionCookie();
+  await clearWebmailSession();
 
   log("info", "User logged out");
 

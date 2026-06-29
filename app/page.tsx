@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import WebmailLoginForm from "@/app/components/webmail-login-form";
 
 export const metadata: Metadata = {
   title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
@@ -86,48 +87,7 @@ export default async function Home({
               </div>
             </div>
 
-            <form
-              action="https://mail.qrzmail.com/qrzmail-sso/login"
-              method="post"
-            >
-              {loginFailed && (
-                <div className="message error" role="alert">
-                  Email address or password is incorrect.
-                </div>
-              )}
-
-              <div className="field">
-                <label htmlFor="email">Email address</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="username"
-                  placeholder="you@yourdomain.com"
-                  required
-                />
-              </div>
-
-              <div className="field">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <label htmlFor="password">Password</label>
-                  <Link href="/forgot-password" style={{ fontSize: "12px", color: "var(--accent-light)" }}>
-                    Forgot?
-                  </Link>
-                </div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
-              </div>
-
-              <button className="button primary full" type="submit">
-                Open my inbox →
-              </button>
-            </form>
+            <WebmailLoginForm loginFailed={loginFailed} />
 
             <p className="home-card-footer">
               Need a qrzmail.com address?{" "}

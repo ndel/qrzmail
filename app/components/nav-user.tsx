@@ -38,6 +38,7 @@ export default function NavUser() {
     return (
       <>
         <Link href="/pricing">Pricing</Link>
+        <Link href="/mail">Mail</Link>
         <Link href="/domains">Domain panel</Link>
         <Link href="/marketing">Marketing</Link>
         {user.subscription === "free" && (
@@ -56,6 +57,7 @@ export default function NavUser() {
   return (
     <>
       <Link href="/pricing">Pricing</Link>
+      <Link href="/mail">Mail</Link>
       <Link href="/domains/login">Domain panel</Link>
       <Link href="/marketing">Marketing</Link>
       <Link href="/signup" className="cta">

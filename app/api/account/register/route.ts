@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createSessionToken, hashPassword } from "@/lib/auth";
 import { generateCsrfToken, setAccountAuthCookies } from "@/lib/session";
+import { setWebmailSession } from "@/lib/webmail-session";
 import { makeId, nowIso, updateData } from "@/lib/store";
 import { isStrongPassword, isValidEmail, normalizeEmail } from "@/lib/validation";
 import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
@@ -75,7 +76,11 @@ export async function POST(request: Request) {
     user: { email: user.email, name: user.name, role: user.role },
     csrfToken,
   });
-  setAccountAuthCookies(response, createSessionToken(user), csrfToken);
+  setAccountAuthCookies(response, createSessionToken(user, password), csrfToken);
+
+  // Also create a webmail session so the user is automatically logged into
+  // the webmail without needing to enter their password again.
+  await setWebmailSession(user.email, password).catch(() => {});
 
   logResponse(request, response, startTime);
   return response;

@@ -4,6 +4,7 @@ import { makeId, nowIso, readData, updateData } from "@/lib/store";
 import { normalizeEmail } from "@/lib/validation";
 import { log, logRequest, logResponse, parseJsonBody } from "@/lib/middleware";
 import { generateCsrfToken, setAccountAuthCookies } from "@/lib/session";
+import { setWebmailSession } from "@/lib/webmail-session";
 import tls from "node:tls";
 
 export const runtime = "nodejs";
@@ -171,7 +172,9 @@ export async function POST(request: Request) {
   }
 
   // Build the session token and CSRF token.
-  const sessionToken = createSessionToken(user);
+  // Store the mailbox password (encrypted) in the session so the webmail
+  // can auto-login without asking the user for their password again.
+  const sessionToken = createSessionToken(user, password);
 
   const csrfToken = generateCsrfToken();
   const response = NextResponse.json({
@@ -179,6 +182,10 @@ export async function POST(request: Request) {
     csrfToken,
   });
   setAccountAuthCookies(response, sessionToken, csrfToken);
+
+  // Also create a webmail session so the user is automatically logged into
+  // the webmail without needing to enter their password again.
+  await setWebmailSession(user.email, password).catch(() => {});
 
   logResponse(request, response, startTime);
   return response;

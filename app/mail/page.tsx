@@ -213,6 +213,7 @@ export default function MailPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [account, setAccount] = useState<string | null>(null);
+  const [mainUser, setMainUser] = useState<{ email: string; name: string } | null>(null);
   const [folders, setFolders] = useState<Folder[]>([]);
   const [folder, setFolder] = useState("INBOX");
   const [messages, setMessages] = useState<MessageSummary[]>([]);
@@ -279,9 +280,9 @@ export default function MailPage() {
   const draftKey = account ? `qrzmail-webmail-draft:${account}` : "";
 
   useEffect(() => {
-    document.body.classList.add("webmail-route");
+    document.body.classList.add("mail-route");
     return () => {
-      document.body.classList.remove("webmail-route");
+      document.body.classList.remove("mail-route");
       document.body.classList.remove("webmail-light");
     };
   }, []);
@@ -332,18 +333,42 @@ export default function MailPage() {
     setLoading(true);
     try {
       const res = await fetch("/api/webmail/me");
-      if (!res.ok) {
-        setAccount(null);
+      if (res.ok) {
+        const body = (await res.json()) as { email: string };
+        setAccount(body.email);
+        await loadFolders();
+        await loadMessages("INBOX", "");
         return;
       }
-      const body = (await res.json()) as { email: string };
-      setAccount(body.email);
-      await loadFolders();
-      await loadMessages("INBOX", "");
+
+      // No webmail session — try auto-login using the main app session
+      // (which stores the mailbox password encrypted).
+      const autoRes = await fetch("/api/webmail/auto-login", { method: "POST" });
+      if (autoRes.ok) {
+        const body = (await autoRes.json()) as { email: string };
+        setAccount(body.email);
+        await loadFolders();
+        await loadMessages("INBOX", "");
+      } else {
+        setAccount(null);
+      }
     } finally {
       setLoading(false);
     }
   }, [loadFolders, loadMessages]);
+
+  useEffect(() => {
+    // Fetch main app user for display and pre-fill email
+    fetch("/api/account/me")
+      .then((r) => (r.ok ? r.json() : { user: null }))
+      .then((data) => {
+        if (data?.user?.email) {
+          setMainUser({ email: data.user.email, name: data.user.name || "" });
+          setEmail(data.user.email);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -824,7 +849,11 @@ export default function MailPage() {
           <div>
             <p className="mail-kicker">Unified inbox</p>
             <h1>Sign in to webmail</h1>
-            <p>Read, search, send, and manage your QRZMail messages.</p>
+            {mainUser ? (
+              <p>Welcome, <strong>{mainUser.name || mainUser.email}</strong>. Enter your mailbox password to access your mail.</p>
+            ) : (
+              <p>Read, search, send, and manage your QRZMail messages.</p>
+            )}
           </div>
           {error && <div className="mail-error">{error}</div>}
           <label>
@@ -845,6 +874,7 @@ export default function MailPage() {
               autoComplete="current-password"
               value={password}
               onChange={(event) => setPassword(event.target.value)}
+              placeholder="Your mailbox password"
               required
             />
           </label>
@@ -861,40 +891,6 @@ export default function MailPage() {
 
   return (
     <div className={`mail-shell ${composeOpen ? "composing" : ""}`}>
-      <aside className="mail-rail" aria-label="Webmail navigation">
-        <div className="mail-rail-logo" aria-hidden="true">
-          <span />
-        </div>
-        <button className={composeOpen ? "active" : ""} onClick={() => startCompose()} type="button" title="Compose">
-          <Edit3 size={25} aria-hidden="true" />
-          <span>Compose</span>
-        </button>
-        <button className={activeView === "mail" && !composeOpen ? "active" : ""} onClick={() => openView("mail")} type="button" title="Mail">
-          <Mail size={25} aria-hidden="true" />
-          <span>Mail</span>
-        </button>
-        <button className={activeView === "contacts" ? "active" : ""} onClick={() => openView("contacts")} type="button" title="Contacts">
-          <Users size={25} aria-hidden="true" />
-          <span>Contacts</span>
-        </button>
-        <button className={activeView === "settings" ? "active" : ""} onClick={() => openView("settings")} type="button" title="Settings">
-          <Settings size={25} aria-hidden="true" />
-          <span>Settings</span>
-        </button>
-        <div className="mail-rail-spacer" />
-        <button type="button" onClick={() => setTheme((value) => (value === "dark" ? "light" : "dark"))} title="Toggle theme">
-          {theme === "dark" ? <Sun size={23} aria-hidden="true" /> : <Moon size={23} aria-hidden="true" />}
-          <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
-        </button>
-        <button className={activeView === "about" ? "active" : ""} onClick={() => openView("about")} type="button" title="About">
-          <HelpCircle size={25} aria-hidden="true" />
-          <span>About</span>
-        </button>
-        <button className="danger" onClick={handleLogout} type="button" title="Logout">
-          <Power size={25} aria-hidden="true" />
-          <span>Logout</span>
-        </button>
-      </aside>
       <aside className="mail-sidebar">
         <div className="mail-brand-panel">
           <div className="mail-brand-mark">Q</div>

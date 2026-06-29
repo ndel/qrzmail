@@ -5370,6 +5370,112 @@ code {
   .webmail-route .mail-reader.open {
     display: flex;
   }
+  
+  /* ── Mail route inside main app chrome ──────────────────── */
+  .mail-route .mail-auth {
+    min-height: min(640px, calc(100vh - 180px));
+    display: grid;
+    place-items: center;
+    background: transparent;
+    padding: 40px 24px;
+  }
+  
+  .mail-route .mail-login-card {
+    width: min(100%, 420px);
+    display: grid;
+    gap: 18px;
+    padding: 28px;
+    background: #ffffff;
+    border: 1px solid #dfe6ef;
+    border-radius: 8px;
+    box-shadow: 0 18px 50px rgba(34, 48, 74, 0.12);
+  }
+  
+  .mail-route .mail-login-card h1 {
+    margin: 0 0 8px;
+    color: #172033;
+    font-size: 28px;
+  }
+  
+  .mail-route .mail-login-card p,
+  .mail-route .mail-toolbar p,
+  .mail-route .mail-reader-header p {
+    margin: 0;
+    color: #68758a;
+  }
+  
+  .mail-route .mail-shell {
+    min-height: calc(100vh - 180px);
+    display: grid;
+    grid-template-columns: 270px minmax(380px, 500px) minmax(0, 1fr);
+    background:
+      linear-gradient(180deg, rgba(245, 248, 252, 0.95), rgba(234, 240, 248, 0.95)),
+      #eef3f8;
+    font-size: 14px;
+    border: 1px solid #d7e0ec;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+  }
+  
+  .mail-route .mail-sidebar,
+  .mail-route .mail-list-panel,
+  .mail-route .mail-reader {
+    height: 100%;
+    min-height: 0;
+  }
+  
+  .mail-route .mail-sidebar {
+    gap: 14px;
+    padding: 16px 14px;
+    background: #101827;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  
+  .mail-route .mail-message-list {
+    height: calc(100% - 137px);
+  }
+  
+  .mail-route .mail-reader-empty {
+    min-height: 100%;
+  }
+  
+  @media (max-width: 1120px) {
+    .mail-route .mail-shell {
+      grid-template-columns: 230px minmax(330px, 430px) minmax(0, 1fr);
+    }
+  }
+  
+  @media (max-width: 900px) {
+    .mail-route .mail-shell {
+      grid-template-columns: 86px minmax(0, 1fr);
+    }
+    .mail-route .mail-sidebar {
+      display: none;
+    }
+    .mail-route .mail-reader {
+      position: fixed;
+      inset: 0;
+      z-index: 1300;
+      display: none;
+    }
+    .mail-route .mail-reader.open {
+      display: flex;
+    }
+  }
+  
+  @media (max-width: 640px) {
+    .mail-route .mail-auth {
+      min-height: calc(100vh - 190px);
+      border-radius: 8px;
+    }
+    .mail-route .mail-shell {
+      height: auto;
+      min-height: calc(100vh - 180px);
+      overflow: visible;
+      display: block;
+    }
+  }
 
   .webmail-route .mail-compose-overlay {
     grid-template-columns: 72px minmax(0, 1fr);
