@@ -808,24 +808,24 @@ code {
 .home-hero {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 64px;
+  gap: 48px;
   align-items: start;
-  padding-bottom: 96px;
+  padding-bottom: 80px;
   border-bottom: 1px solid var(--line);
 }
 
 /* Left copy */
 .home-copy {
   display: grid;
-  gap: 24px;
-  padding-top: 24px;
+  gap: 20px;
+  padding-top: 16px;
 }
 
 .home-headline {
-  font-size: clamp(44px, 5.5vw, 72px);
-  font-weight: 900;
-  line-height: 1.02;
-  letter-spacing: -0.03em;
+  font-size: clamp(28px, 3.2vw, 40px);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
   background: linear-gradient(135deg, #ffffff 30%, #93c5fd 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -833,8 +833,8 @@ code {
 }
 
 .home-sub {
-  font-size: 17px;
-  line-height: 1.65;
+  font-size: 16px;
+  line-height: 1.6;
   color: var(--ink-soft);
   max-width: 460px;
 }
@@ -864,7 +864,7 @@ code {
 }
 
 .home-card {
-  padding: 36px;
+  padding: 32px;
   box-shadow:
     0 0 0 1px rgba(255,255,255,0.07),
     0 32px 80px rgba(0,0,0,0.5),
@@ -896,7 +896,7 @@ code {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
 }
 
 .home-card-header h2 {
@@ -922,7 +922,7 @@ code {
 /* ── Home signup form enhancements ────────────────────── */
 .home-card form {
   display: grid;
-  gap: 6px;
+  gap: 10px;
 }
 
 .home-card .field {
@@ -930,12 +930,10 @@ code {
 }
 
 .home-card .field label {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  font-size: 13px;
+  font-weight: 500;
   color: var(--ink-soft);
-  margin-bottom: 2px;
+  margin-bottom: 0;
 }
 
 .home-card input[type="text"],
@@ -950,11 +948,20 @@ code {
   transition: all 0.2s;
 }
 
+.home-card input::placeholder {
+  color: rgba(143,163,190,0.45);
+  font-weight: 400;
+}
+
 .home-card input[type="text"]:focus,
 .home-card input[type="password"]:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(59,130,246,0.08);
+  box-shadow: 0 0 0 3px var(--accent-glow);
   background: rgba(255,255,255,0.07);
+}
+
+.home-card .input-group {
+  display: flex;
 }
 
 .home-card .input-group input {
@@ -969,7 +976,7 @@ code {
 
 .home-card .input-group input:focus {
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px var(--accent-glow), 0 0 20px rgba(59,130,246,0.08);
+  box-shadow: 0 0 0 3px var(--accent-glow);
   background: rgba(255,255,255,0.07);
 }
 
@@ -986,16 +993,17 @@ code {
 }
 
 .home-card .button.primary.full {
-  min-height: 50px;
-  margin-top: 8px;
+  min-height: 48px;
+  margin-top: 4px;
   border-radius: 10px;
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0;
   background: linear-gradient(135deg, var(--accent), #6366f1);
   box-shadow: 0 4px 16px rgba(59,130,246,0.25);
   transition: all 0.2s;
   border: none;
+  cursor: pointer;
 }
 
 .home-card .button.primary.full:hover {
