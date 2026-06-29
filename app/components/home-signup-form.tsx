@@ -108,6 +108,7 @@ export default function HomeSignupForm() {
         <input
           id="home-signup-name"
           name="name"
+          type="text"
           autoComplete="name"
           maxLength={80}
           placeholder="Your name"
