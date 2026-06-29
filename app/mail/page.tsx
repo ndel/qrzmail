@@ -845,16 +845,16 @@ export default function MailPage() {
             <div className="mail-brand-mark">Q</div>
             <div>
               <strong>QRZMail</strong>
-              <span>Webmail</span>
+              <span>Account</span>
             </div>
           </div>
           <div>
-            <p className="mail-kicker">Unified inbox</p>
-            <h1>Sign in to webmail</h1>
+            <p className="mail-kicker">Unified access</p>
+            <h1>Sign in to your account</h1>
             {mainUser ? (
-              <p>Welcome, <strong>{mainUser.name || mainUser.email}</strong>. Enter your mailbox password to access your mail.</p>
+              <p>Welcome, <strong>{mainUser.name || mainUser.email}</strong>. Enter your password to access mail, domains, and marketing.</p>
             ) : (
-              <p>Read, search, send, and manage your QRZMail messages.</p>
+              <p>Access your email, manage domains, and run marketing campaigns.</p>
             )}
           </div>
           {error && <div className="mail-error">{error}</div>}

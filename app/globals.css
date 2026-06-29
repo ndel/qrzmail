@@ -582,6 +582,16 @@ img { display: block; max-width: 100%; }
   padding: 72px 0 48px;
 }
 
+/* Full-width pages override */
+.mail-route .main,
+.marketing-route .main,
+.domains-route .main {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  margin: 0;
+}
+
 /* ── Buttons ─────────────────────────────────────────────── */
 .button {
   display: inline-flex;
@@ -2580,7 +2590,7 @@ code {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: #f4f7fb;
+  background: var(--bg);
   padding: 24px;
 }
 
@@ -2589,15 +2599,15 @@ code {
   display: grid;
   gap: 18px;
   padding: 28px;
-  background: #ffffff;
-  border: 1px solid #dfe6ef;
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
   border-radius: 8px;
   box-shadow: 0 18px 50px rgba(34, 48, 74, 0.12);
 }
 
 .mail-login-card h1 {
   margin: 0 0 8px;
-  color: #172033;
+  color: var(--ink);
   font-size: 28px;
 }
 
@@ -2605,7 +2615,7 @@ code {
 .mail-toolbar p,
 .mail-reader-header p {
   margin: 0;
-  color: #68758a;
+  color: var(--ink-soft);
 }
 
 .mail-kicker {
@@ -2613,13 +2623,13 @@ code {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #1664d9 !important;
+  color: var(--accent-light) !important;
 }
 
 .mail-login-card label {
   display: grid;
   gap: 6px;
-  color: #31415a;
+  color: var(--ink-soft);
   font-size: 13px;
   font-weight: 700;
 }
@@ -2628,11 +2638,11 @@ code {
 .mail-compose input,
 .mail-compose textarea {
   width: 100%;
-  border: 1px solid #cfdae8;
+  border: 1px solid var(--panel-border);
   border-radius: 6px;
   padding: 11px 12px;
-  color: #172033;
-  background: #ffffff;
+  color: var(--ink);
+  background: var(--bg2);
   font: inherit;
 }
 
@@ -2641,7 +2651,7 @@ code {
   border: 0;
   border-radius: 6px;
   padding: 11px 14px;
-  background: #1769e0;
+  background: var(--accent);
   color: white;
   font-weight: 800;
   cursor: pointer;
@@ -2657,14 +2667,14 @@ code {
 
 .mail-sogo-link {
   text-align: center;
-  color: #1769e0;
+  color: var(--accent-light);
   font-weight: 700;
 }
 
 .mail-error {
-  border: 1px solid #f0bdc0;
-  background: #fff0f1;
-  color: #9b1f2a;
+  border: 1px solid rgba(240, 189, 192, 0.5);
+  background: rgba(255, 240, 241, 0.15);
+  color: var(--danger);
   border-radius: 6px;
   padding: 10px 12px;
   font-size: 13px;
@@ -2675,8 +2685,8 @@ code {
   min-height: 100vh;
   display: grid;
   grid-template-columns: 240px minmax(300px, 420px) minmax(0, 1fr);
-  background: #eef3f8;
-  color: #172033;
+  background: var(--bg);
+  color: var(--ink);
 }
 
 .mail-loading {
@@ -3570,11 +3580,11 @@ code {
 }
 
 .mail-login-card .mail-brand-panel strong {
-  color: #142033;
+  color: var(--ink);
 }
 
 .mail-login-card .mail-brand-panel span {
-  color: #61728a;
+  color: var(--ink-soft);
 }
 
 .mail-shell {
@@ -5385,15 +5395,15 @@ code {
     display: grid;
     gap: 18px;
     padding: 28px;
-    background: #ffffff;
-    border: 1px solid #dfe6ef;
+    background: var(--panel);
+    border: 1px solid var(--panel-border);
     border-radius: 8px;
     box-shadow: 0 18px 50px rgba(34, 48, 74, 0.12);
   }
   
   .mail-route .mail-login-card h1 {
     margin: 0 0 8px;
-    color: #172033;
+    color: var(--ink);
     font-size: 28px;
   }
   
@@ -5401,18 +5411,16 @@ code {
   .mail-route .mail-toolbar p,
   .mail-route .mail-reader-header p {
     margin: 0;
-    color: #68758a;
+    color: var(--ink-soft);
   }
   
   .mail-route .mail-shell {
     min-height: calc(100vh - 180px);
     display: grid;
     grid-template-columns: 270px minmax(380px, 500px) minmax(0, 1fr);
-    background:
-      linear-gradient(180deg, rgba(245, 248, 252, 0.95), rgba(234, 240, 248, 0.95)),
-      #eef3f8;
+    background: var(--bg);
     font-size: 14px;
-    border: 1px solid #d7e0ec;
+    border: 1px solid var(--panel-border);
     border-radius: 8px;
     overflow: hidden;
     box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
@@ -5428,8 +5436,8 @@ code {
   .mail-route .mail-sidebar {
     gap: 14px;
     padding: 16px 14px;
-    background: #101827;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: var(--bg2);
+    border-right: 1px solid var(--panel-border);
   }
   
   .mail-route .mail-message-list {

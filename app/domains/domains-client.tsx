@@ -258,6 +258,13 @@ export default function DomainsClient() {
   const [subscription, setSubscription] = useState<string | null>(null);
   const [mailboxDomainId, setMailboxDomainId] = useState<string>("");
 
+  useEffect(() => {
+    document.body.classList.add("domains-route");
+    return () => {
+      document.body.classList.remove("domains-route");
+    };
+  }, []);
+
   const activeDomains = useMemo(
     () => domains.filter((domain) => domain.status === "active"),
     [domains],

@@ -24,6 +24,13 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    document.body.classList.add("marketing-route");
+    return () => {
+      document.body.classList.remove("marketing-route");
+    };
+  }, []);
+
+  useEffect(() => {
     fetch("/api/marketing/stats")
       .then((r) => r.json())
       .then((data) => { setStats(data); setLoading(false); })

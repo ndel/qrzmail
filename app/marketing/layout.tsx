@@ -19,7 +19,7 @@ export default function MarketingLayout({
         .marketing-layout {
           display: flex;
           min-height: 100vh;
-          background: #f8f9fc;
+          background: var(--bg);
         }
         .marketing-content {
           flex: 1;
@@ -37,7 +37,7 @@ export default function MarketingLayout({
         .page-heading h1 {
           font-size: 1.5rem;
           font-weight: 700;
-          color: #0f172a;
+          color: var(--ink);
           margin: 0;
         }
         .btn {
@@ -54,23 +54,25 @@ export default function MarketingLayout({
           transition: all 0.15s;
         }
         .btn-primary {
-          background: #3b82f6;
+          background: var(--accent);
           color: white;
         }
-        .btn-primary:hover { background: #2563eb; }
+        .btn-primary:hover { background: var(--accent-dark); }
         .btn-secondary {
-          background: #e2e8f0;
-          color: #334155;
+          background: var(--panel);
+          color: var(--ink-soft);
+          border: 1px solid var(--panel-border);
         }
-        .btn-secondary:hover { background: #cbd5e1; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.08); }
         .btn-danger {
-          background: #ef4444;
+          background: var(--danger);
           color: white;
         }
         .btn-danger:hover { background: #dc2626; }
         .btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8rem; }
         .card {
-          background: white;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
           border-radius: 8px;
           box-shadow: 0 1px 3px rgba(0,0,0,0.06);
           padding: 1.5rem;
@@ -82,7 +84,7 @@ export default function MarketingLayout({
           display: block;
           font-size: 0.85rem;
           font-weight: 600;
-          color: #334155;
+          color: var(--ink-soft);
           margin-bottom: 0.35rem;
         }
         .form-group input,
@@ -90,19 +92,19 @@ export default function MarketingLayout({
         .form-group select {
           width: 100%;
           padding: 0.5rem 0.75rem;
-          border: 1px solid #cbd5e1;
+          border: 1px solid var(--panel-border);
           border-radius: 6px;
           font-size: 0.9rem;
-          color: #0f172a;
-          background: white;
+          color: var(--ink);
+          background: var(--bg2);
           box-sizing: border-box;
         }
         .form-group input:focus,
         .form-group textarea:focus,
         .form-group select:focus {
           outline: none;
-          border-color: #3b82f6;
-          box-shadow: 0 0 0 3px rgba(59,130,246,0.1);
+          border-color: var(--accent);
+          box-shadow: 0 0 0 3px var(--accent-glow);
         }
         .form-group textarea { min-height: 100px; resize: vertical; }
         .form-row {
@@ -119,18 +121,18 @@ export default function MarketingLayout({
           text-align: left;
           padding: 0.6rem 0.75rem;
           font-weight: 600;
-          color: #64748b;
-          border-bottom: 2px solid #e2e8f0;
+          color: var(--ink-soft);
+          border-bottom: 2px solid var(--line);
           font-size: 0.8rem;
           text-transform: uppercase;
           letter-spacing: 0.05em;
         }
         .data-table td {
           padding: 0.6rem 0.75rem;
-          border-bottom: 1px solid #f1f5f9;
-          color: #334155;
+          border-bottom: 1px solid var(--line);
+          color: var(--ink);
         }
-        .data-table tr:hover td { background: #f8fafc; }
+        .data-table tr:hover td { background: var(--panel); }
         .table-container { overflow-x: auto; }
         .badge {
           display: inline-block;
@@ -139,19 +141,19 @@ export default function MarketingLayout({
           font-size: 0.75rem;
           font-weight: 600;
         }
-        .badge-active { background: #dcfce7; color: #166534; }
-        .badge-draft { background: #f1f5f9; color: #475569; }
-        .badge-sending { background: #dbeafe; color: #1e40af; }
-        .badge-sent { background: #dbeafe; color: #1e40af; }
-        .badge-completed { background: #dcfce7; color: #166534; }
-        .badge-failed { background: #fef2f2; color: #991b1b; }
-        .badge-paused { background: #fef9c3; color: #854d0e; }
-        .badge-scheduled { background: #f3e8ff; color: #6b21a8; }
-        .badge-bounced { background: #fef2f2; color: #991b1b; }
-        .badge-unsubscribed { background: #fef2f2; color: #991b1b; }
-        .badge-pending { background: #f1f5f9; color: #475569; }
-        .badge-opened { background: #dcfce7; color: #166534; }
-        .badge-clicked { background: #dbeafe; color: #1e40af; }
+        .badge-active { background: rgba(34,197,94,0.15); color: var(--green); }
+        .badge-draft { background: var(--panel); color: var(--ink-soft); }
+        .badge-sending { background: rgba(59,130,246,0.15); color: var(--accent-light); }
+        .badge-sent { background: rgba(59,130,246,0.15); color: var(--accent-light); }
+        .badge-completed { background: rgba(34,197,94,0.15); color: var(--green); }
+        .badge-failed { background: rgba(248,113,113,0.15); color: var(--danger); }
+        .badge-paused { background: rgba(250,204,21,0.15); color: #eab308; }
+        .badge-scheduled { background: rgba(168,85,247,0.15); color: #a855f7; }
+        .badge-bounced { background: rgba(248,113,113,0.15); color: var(--danger); }
+        .badge-unsubscribed { background: rgba(248,113,113,0.15); color: var(--danger); }
+        .badge-pending { background: var(--panel); color: var(--ink-soft); }
+        .badge-opened { background: rgba(34,197,94,0.15); color: var(--green); }
+        .badge-clicked { background: rgba(59,130,246,0.15); color: var(--accent-light); }
         .stats-grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -159,7 +161,8 @@ export default function MarketingLayout({
           margin-bottom: 2rem;
         }
         .stat-card {
-          background: white;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
           border-radius: 8px;
           padding: 1.25rem;
           box-shadow: 0 1px 3px rgba(0,0,0,0.06);
@@ -167,11 +170,11 @@ export default function MarketingLayout({
         .stat-card .stat-value {
           font-size: 1.75rem;
           font-weight: 700;
-          color: #0f172a;
+          color: var(--ink);
         }
         .stat-card .stat-label {
           font-size: 0.8rem;
-          color: #64748b;
+          color: var(--ink-soft);
           margin-top: 0.25rem;
         }
         .inline-form {
@@ -183,15 +186,16 @@ export default function MarketingLayout({
         .inline-form .form-group { margin-bottom: 0; }
         .filter-select {
           padding: 0.4rem 0.75rem;
-          border: 1px solid #cbd5e1;
+          border: 1px solid var(--panel-border);
           border-radius: 6px;
           font-size: 0.85rem;
-          background: white;
+          background: var(--bg2);
+          color: var(--ink);
         }
         .empty-state {
           text-align: center;
           padding: 3rem 1rem;
-          color: #94a3b8;
+          color: var(--ink-soft);
         }
         .empty-state p { font-size: 1rem; margin-bottom: 1rem; }
         .action-card {
@@ -199,15 +203,15 @@ export default function MarketingLayout({
           align-items: center;
           gap: 0.5rem;
           padding: 0.75rem 1rem;
-          background: #f8fafc;
-          border: 1px solid #e2e8f0;
+          background: var(--panel);
+          border: 1px solid var(--panel-border);
           border-radius: 8px;
           text-decoration: none;
-          color: #334155;
+          color: var(--ink);
           font-size: 0.9rem;
           transition: all 0.15s;
         }
-        .action-card:hover { background: #f1f5f9; border-color: #cbd5e1; }
+        .action-card:hover { background: rgba(255,255,255,0.08); border-color: var(--ink-soft); }
         .filters {
           display: flex;
           gap: 0.75rem;
@@ -219,14 +223,14 @@ export default function MarketingLayout({
         .section-title {
           font-size: 1.1rem;
           font-weight: 600;
-          color: #0f172a;
+          color: var(--ink);
           margin-bottom: 1rem;
         }
         .preview-body {
-          border: 1px solid #e2e8f0;
+          border: 1px solid var(--panel-border);
           border-radius: 8px;
           padding: 1rem;
-          background: white;
+          background: var(--bg2);
           min-height: 200px;
         }
         .preview-body iframe {
