@@ -15,6 +15,8 @@ interface List {
 export default function ListsPage() {
   const [lists, setLists] = useState<List[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
 
   const load = () => {
     fetch("/api/marketing/lists")
@@ -29,6 +31,31 @@ export default function ListsPage() {
     if (!confirm("Delete this list and all its contacts?")) return;
     await fetch(`/api/marketing/lists/${id}`, { method: "DELETE" });
     load();
+  };
+
+  const startEditing = (list: List) => {
+    setEditingId(list.id);
+    setEditName(list.name);
+  };
+
+  const saveEdit = async (id: string) => {
+    const trimmed = editName.trim();
+    if (!trimmed) {
+      setEditingId(null);
+      return;
+    }
+    await fetch(`/api/marketing/lists/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: trimmed }),
+    });
+    setEditingId(null);
+    load();
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditName("");
   };
 
   return (
@@ -61,16 +88,39 @@ export default function ListsPage() {
         <div style={{ display: "grid", gap: "0.75rem" }}>
           {lists.map((list) => (
             <div key={list.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <div>
-                <Link href={`/marketing/lists/${list.id}`} style={{ fontWeight: 600, color: "#0f172a", textDecoration: "none", fontSize: "1rem" }}>
-                  {list.name}
-                </Link>
-                {list.description && <p style={{ margin: "0.25rem 0 0", fontSize: "0.85rem", color: "#64748b" }}>{list.description}</p>}
-                <p style={{ margin: "0.25rem 0 0", fontSize: "0.8rem", color: "#94a3b8" }}>
-                  {list.active_contacts || 0} active / {list.total_contacts || 0} total
-                </p>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                {editingId === list.id ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <input
+                      type="text"
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveEdit(list.id);
+                        if (e.key === "Escape") cancelEdit();
+                      }}
+                      style={{ fontSize: "1rem", padding: "0.3rem 0.5rem", border: "1px solid #6366f1", borderRadius: "4px", outline: "none", width: "300px", maxWidth: "100%" }}
+                      autoFocus
+                    />
+                    <button className="btn btn-primary btn-sm" onClick={() => saveEdit(list.id)}>Save</button>
+                    <button className="btn btn-secondary btn-sm" onClick={cancelEdit}>Cancel</button>
+                  </div>
+                ) : (
+                  <div>
+                    <Link href={`/marketing/lists/${list.id}`} style={{ fontWeight: 600, color: "#0f172a", textDecoration: "none", fontSize: "1rem" }}>
+                      {list.name}
+                    </Link>
+                    {list.description && <p style={{ margin: "0.25rem 0 0", fontSize: "0.85rem", color: "#64748b" }}>{list.description}</p>}
+                    <p style={{ margin: "0.25rem 0 0", fontSize: "0.8rem", color: "#94a3b8" }}>
+                      {list.active_contacts || 0} active / {list.total_contacts || 0} total
+                    </p>
+                  </div>
+                )}
               </div>
-              <button className="btn btn-danger btn-sm" onClick={() => handleDelete(list.id)}>Delete</button>
+              <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0, marginLeft: "1rem" }}>
+                <button className="btn btn-secondary btn-sm" onClick={() => startEditing(list)}>Rename</button>
+                <button className="btn btn-danger btn-sm" onClick={() => handleDelete(list.id)}>Delete</button>
+              </div>
             </div>
           ))}
         </div>
