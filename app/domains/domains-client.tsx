@@ -69,8 +69,7 @@ type ModalState =
   | { type: "add-alias"; domainId: string }
   | { type: "edit-alias"; alias: AliasRecord }
   | { type: "delete-alias"; alias: AliasRecord }
-  | { type: "dkim"; domain: DomainRecord; dnsRecords: DkimDnsRecords }
-  | { type: "upgrade" };
+  | { type: "dkim"; domain: DomainRecord; dnsRecords: DkimDnsRecords };
 
 type Tab = "domains" | "mailboxes" | "aliases";
 
@@ -483,20 +482,6 @@ export default function DomainsClient() {
     await loadData();
   }
 
-  async function handleUpgrade(plan: string) {
-    setState({ type: "loading" });
-    const response = await fetch("/api/account/upgrade", {
-      method: "POST",
-      headers: csrfHeaders(),
-      body: JSON.stringify({ plan }),
-    });
-    const result = await response.json();
-    if (!response.ok) { setState({ type: "error", message: result.error ?? "Upgrade request failed." }); return; }
-    setModal({ type: "closed" });
-    setSubscription("pending");
-    setState({ type: "success", message: result.message ?? "Upgrade requested. An admin will verify your request shortly." });
-  }
-
   const aliasesByDomain = useMemo(() => {
     const map = new Map<string, AliasRecord[]>();
     for (const alias of aliases) { const list = map.get(alias.domainId) ?? []; list.push(alias); map.set(alias.domainId, list); }
@@ -521,11 +506,6 @@ export default function DomainsClient() {
           </div>
         </div>
         <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-          {subscription === "free" && (
-            <button className="button primary" onClick={() => setModal({ type: "upgrade" })} type="button" style={{ fontSize: "13px", minHeight: "36px", padding: "0 14px" }}>
-              Upgrade Plan
-            </button>
-          )}
           {subscription === "pending" && (
             <span className="badge" style={{ background: "rgba(251,191,36,0.12)", color: "#fcd34d" }}>Pending Admin Verification</span>
           )}
@@ -1100,65 +1080,6 @@ export default function DomainsClient() {
             <div className="modal-actions">
               <button type="button" className="button" onClick={() => setModal({ type: "closed" })}>Cancel</button>
               <button type="button" className="button danger" disabled={state.type === "loading"} onClick={handleDeleteAlias}>Delete alias</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Upgrade Plan Modal */}
-      {modal.type === "upgrade" && (
-        <div className="modal-overlay" onClick={() => setModal({ type: "closed" })}>
-          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "520px" }}>
-            <h2>Upgrade Your Plan</h2>
-            <p className="modal-subtitle">
-              Choose a plan that fits your needs. Your request will be reviewed by an admin.
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "16px" }}>
-              {/* Starter Plan Option */}
-              <div
-                className="panel upgrade-plan-card"
-                style={{ cursor: "pointer", padding: "16px", border: "1px solid var(--panel-border)", borderRadius: "10px" }}
-                onClick={() => { void handleUpgrade("starter"); }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <strong style={{ fontSize: "16px" }}>Starter</strong>
-                    <div style={{ fontSize: "13px", color: "var(--ink-soft)", marginTop: "4px" }}>
-                      Up to 25 mailboxes · 10 GB storage each · Priority support
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span style={{ fontSize: "20px", fontWeight: 700 }}>$9</span>
-                    <span style={{ fontSize: "13px", color: "var(--ink-soft)" }}>/month</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Business Plan Option */}
-              <div
-                className="panel upgrade-plan-card"
-                style={{ cursor: "pointer", padding: "16px", border: "1px solid var(--accent)", borderRadius: "10px", background: "rgba(59,130,246,0.05)" }}
-                onClick={() => { void handleUpgrade("business"); }}
-              >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <div>
-                    <strong style={{ fontSize: "16px" }}>Business</strong>
-                    <span className="badge" style={{ background: "rgba(59,130,246,0.15)", color: "var(--accent-light)", fontSize: "11px", marginLeft: "8px" }}>Popular</span>
-                    <div style={{ fontSize: "13px", color: "var(--ink-soft)", marginTop: "4px" }}>
-                      Up to 100 mailboxes · 25 GB storage each · Phone & email support
-                    </div>
-                  </div>
-                  <div style={{ textAlign: "right" }}>
-                    <span style={{ fontSize: "20px", fontWeight: 700 }}>$29</span>
-                    <span style={{ fontSize: "13px", color: "var(--ink-soft)" }}>/month</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="modal-actions" style={{ marginTop: "20px" }}>
-              <button type="button" className="button" onClick={() => setModal({ type: "closed" })}>Cancel</button>
             </div>
           </div>
         </div>
