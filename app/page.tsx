@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import WebmailLoginForm from "@/app/components/webmail-login-form";
+import HomeSignupForm from "@/app/components/home-signup-form";
 
 export const metadata: Metadata = {
   title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
   description:
-    "Sign in to your QRZMail inbox, create a free qrzmail.com mailbox, or set up custom domain email hosting with IMAP/SMTP, calendar, contacts, SPF, DKIM & DMARC. Fast, private, and reliable.",
+    "Create a free qrzmail.com mailbox, access secure webmail, or set up custom domain email hosting with IMAP/SMTP, calendar, contacts, SPF, DKIM & DMARC. Fast, private, and reliable.",
   keywords: [
     "QRZMail webmail",
     "free email hosting",
@@ -21,18 +21,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "QRZMail – Secure Webmail & Custom Domain Email Hosting",
     description:
-      "Sign in to your QRZMail inbox, create a free qrzmail.com mailbox, or set up custom domain email hosting with IMAP/SMTP, calendar, contacts, SPF, DKIM & DMARC.",
+      "Create a free qrzmail.com mailbox, access secure webmail, or set up custom domain email hosting with IMAP/SMTP, calendar, contacts, SPF, DKIM & DMARC.",
   },
 };
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams?: Promise<{ login?: string }>;
-}) {
-  const params = await searchParams;
-  const loginFailed = params?.login === "failed";
-
+export default async function Home() {
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -76,23 +69,23 @@ export default async function Home({
           </div>
         </div>
 
-        {/* Right — webmail login card */}
+        {/* Right — create account card */}
         <div>
           <div className="panel home-card">
             <div className="home-card-header">
               <span className="mark lg">Q</span>
               <div>
-                <h2>Sign in to webmail</h2>
-                <p>Access your inbox on any hosted domain</p>
+                <h2>Create your free mailbox</h2>
+                <p>Get a @qrzmail.com address in seconds</p>
               </div>
             </div>
 
-            <WebmailLoginForm loginFailed={loginFailed} />
+            <HomeSignupForm />
 
             <p className="home-card-footer">
-              Need a qrzmail.com address?{" "}
-              <Link href="/signup" className="text-link">
-                Create one free
+              Already have an account?{" "}
+              <Link href="/login" className="text-link">
+                Sign in to webmail
               </Link>
             </p>
           </div>
