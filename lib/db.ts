@@ -260,6 +260,12 @@ db.exec(`
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  CREATE TABLE IF NOT EXISTS user_settings (
+    user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+    settings TEXT NOT NULL DEFAULT '{}',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   CREATE INDEX IF NOT EXISTS idx_marketing_providers_owner ON marketing_providers(owner_id);
   CREATE INDEX IF NOT EXISTS idx_marketing_lists_owner ON marketing_lists(owner_id);
   CREATE INDEX IF NOT EXISTS idx_marketing_contacts_owner ON marketing_contacts(owner_id);

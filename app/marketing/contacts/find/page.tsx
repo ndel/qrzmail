@@ -23,10 +23,37 @@ export default function FindContactsPage() {
   const [selectedList, setSelectedList] = useState("");
   const [importing, setImporting] = useState(false);
   const [importResult, setImportResult] = useState<any>(null);
+  const [keySaved, setKeySaved] = useState(false);
 
+  // Load saved API key and lists on mount
   useEffect(() => {
     fetch("/api/marketing/lists").then((r) => r.json()).then(setLists).catch(() => {});
+    fetch("/api/marketing/settings")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.settings?.deepseek_api_key) {
+          setApiKey(data.settings.deepseek_api_key);
+        }
+      })
+      .catch(() => {});
   }, []);
+
+  // Save the API key to the server
+  const saveApiKey = async (key: string) => {
+    try {
+      const res = await fetch("/api/marketing/settings", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ settings: { deepseek_api_key: key } }),
+      });
+      if (res.ok) {
+        setKeySaved(true);
+        setTimeout(() => setKeySaved(false), 2000);
+      }
+    } catch {
+      // silently fail — the key will still be sent with the request
+    }
+  };
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +61,10 @@ export default function FindContactsPage() {
     setError("");
     setResults([]);
     setImportResult(null);
+
+    // Persist the API key so the user doesn't have to re-enter it
+    await saveApiKey(apiKey);
+
     try {
       const res = await fetch("/api/marketing/contacts/find", {
         method: "POST",
@@ -100,9 +131,14 @@ export default function FindContactsPage() {
           />
         </div>
         <div className="form-row">
-          <div className="form-group">
-            <label>DeepSeek API Key</label>
-            <input type="password" value={apiKey} onChange={(e) => setApiKey(e.target.value)} required placeholder="sk-..." />
+          <div className="form-group" style={{ flex: 1 }}>
+            <label>
+              DeepSeek API Key
+              {keySaved && (
+                <span style={{ marginLeft: "8px", fontSize: "0.75rem", color: "#166534" }}>✓ Saved</span>
+              )}
+            </label>
+            <input type="password" value={apiKey} onChange={(e) => { setApiKey(e.target.value); setKeySaved(false); }} required placeholder="sk-..." />
           </div>
           <div className="form-group" style={{ width: "120px" }}>
             <label>Count</label>
