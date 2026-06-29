@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface User {
@@ -23,7 +23,9 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     fetch("/api/account/me")
@@ -35,10 +37,16 @@ export default function Sidebar() {
             email: data.user.email,
             name: data.user.name || "",
           });
+        } else {
+          router.push("/");
         }
+        setChecked(true);
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => {
+        router.push("/");
+        setChecked(true);
+      });
+  }, [router]);
 
   return (
     <aside className="marketing-sidebar">
