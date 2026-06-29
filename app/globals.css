@@ -5905,6 +5905,45 @@ code {
   color: #1d2d35;
 }
 
+.webmail-light .mail-toolbar button,
+.webmail-light .mail-reader-actions button {
+  background: transparent;
+  color: #61747c;
+}
+
+.webmail-light .mail-toolbar button:hover,
+.webmail-light .mail-reader-actions button:hover {
+  background: #e5f5fc;
+  color: #1d2d35;
+}
+
+.webmail-light .mail-toolbar-divider {
+  background: #d0dce4;
+}
+
+.webmail-light .mail-folders button svg {
+  opacity: 0.5;
+}
+
+.webmail-light .mail-folders button:hover svg {
+  opacity: 0.8;
+}
+
+.webmail-light .mail-folders button.active svg {
+  opacity: 1;
+  color: #0077a8;
+}
+
+.webmail-light .mail-search button {
+  background: transparent;
+  color: #61747c;
+}
+
+.webmail-light .mail-search button:hover {
+  background: #e5f5fc;
+  color: #1d2d35;
+}
+
 .webmail-light .mail-action-popover,
 .webmail-light .mail-utility-panel,
 .webmail-light .mail-contact-grid button,
@@ -5986,7 +6025,7 @@ code {
   padding: 28px;
   background: var(--panel);
   border: 1px solid var(--panel-border);
-  border-radius: 8px;
+  border-radius: 12px;
   box-shadow: 0 18px 50px rgba(34, 48, 74, 0.12);
 }
 
@@ -6010,7 +6049,7 @@ code {
   background: var(--bg);
   font-size: 14px;
   border: 1px solid var(--panel-border);
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
 }
@@ -6050,27 +6089,58 @@ code {
 .mail-route .mail-toolbar {
   background: var(--bg2);
   border-bottom: 1px solid var(--panel-border);
-  padding: 8px 12px;
+  padding: 6px 12px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+  min-height: 48px;
 }
 
 .mail-route .mail-toolbar button {
-  background: var(--panel);
-  border: 1px solid var(--panel-border);
-  color: var(--ink);
-  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  width: 32px;
+  height: 32px;
+  padding: 0;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.15s;
+  flex: 0 0 auto;
 }
 
 .mail-route .mail-toolbar button:hover {
   background: rgba(255,255,255,0.08);
-  border-color: var(--ink-soft);
+  color: var(--ink);
+}
+
+.mail-route .mail-toolbar button:active {
+  background: rgba(255,255,255,0.12);
+}
+
+.mail-route .mail-toolbar-divider {
+  width: 1px;
+  height: 20px;
+  background: var(--line);
+  flex: 0 0 auto;
+  margin: 0 2px;
+}
+
+.mail-route .mail-toolbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.mail-route .mail-toolbar-tools {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
 }
 
 /* ── Mail message rows ─────────────────────────────────── */
@@ -6080,8 +6150,9 @@ code {
   cursor: pointer;
   transition: background 0.1s;
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 12px;
+  grid-template-columns: 28px 28px 1fr auto;
+  gap: 4px 8px;
+  align-items: center;
 }
 
 .mail-route .mail-message-row:hover {
@@ -6093,7 +6164,27 @@ code {
   border-left: 3px solid var(--accent);
 }
 
+.mail-route .mail-message-row .mail-row-check {
+  grid-column: 1 / 2;
+  display: flex;
+  align-items: center;
+}
+
+.mail-route .mail-message-row .mail-row-status {
+  grid-column: 2 / 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.mail-route .mail-message-row.unread .mail-row-status {
+  color: var(--accent-light);
+}
+
 .mail-route .mail-message-sender {
+  grid-column: 3 / 4;
   font-weight: 600;
   color: var(--ink);
   font-size: 14px;
@@ -6103,15 +6194,16 @@ code {
 }
 
 .mail-route .mail-message-subject {
+  grid-column: 3 / 4;
   color: var(--ink-soft);
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  grid-column: 1 / 2;
 }
 
 .mail-route .mail-message-date {
+  grid-column: 4 / 5;
   color: var(--ink-soft);
   font-size: 12px;
   white-space: nowrap;
@@ -6122,7 +6214,7 @@ code {
 .mail-route .mail-reader-header {
   background: var(--bg2);
   border-bottom: 1px solid var(--panel-border);
-  padding: 16px 20px;
+  padding: 14px 18px;
 }
 
 .mail-route .mail-reader-header h2 {
@@ -6138,23 +6230,82 @@ code {
   font-size: 14px;
 }
 
+.mail-route .mail-reader-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex-wrap: wrap;
+}
+
+.mail-route .mail-reader-actions button {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex: 0 0 auto;
+}
+
+.mail-route .mail-reader-actions button:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--ink);
+}
+
+.mail-route .mail-reader-actions button:active {
+  background: rgba(255,255,255,0.12);
+}
+
+.mail-route .mail-reader-actions .mail-danger:hover {
+  color: #f87171;
+}
+
+.mail-route .mail-reader-actions select {
+  background: transparent;
+  border: 1px solid var(--panel-border);
+  color: var(--ink-soft);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+  min-height: 28px;
+}
+
 /* ── Mail folders ──────────────────────────────────────── */
 .mail-route .mail-folders button {
   background: transparent;
   border: none;
   color: var(--ink-soft);
-  padding: 8px 12px;
+  padding: 7px 12px;
   width: 100%;
   text-align: left;
   cursor: pointer;
   border-radius: 6px;
   font-size: 14px;
   transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mail-route .mail-folders button svg {
+  opacity: 0.6;
+  flex: 0 0 auto;
 }
 
 .mail-route .mail-folders button:hover {
   background: rgba(255,255,255,0.05);
   color: var(--ink);
+}
+
+.mail-route .mail-folders button:hover svg {
+  opacity: 0.9;
 }
 
 .mail-route .mail-folders button.active {
@@ -6163,27 +6314,44 @@ code {
   font-weight: 600;
 }
 
+.mail-route .mail-folders button.active svg {
+  opacity: 1;
+  color: var(--accent-light);
+}
+
 /* ── Mail brand panel ──────────────────────────────────── */
 .mail-route .mail-brand-panel {
-  padding: 16px 14px;
+  padding: 14px 14px;
   border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .mail-route .mail-brand-mark {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 800;
   background: linear-gradient(135deg, var(--accent-light), #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  background-color: var(--bg2);
 }
 
 /* ── Mail account ──────────────────────────────────────── */
 .mail-route .mail-account {
-  padding: 12px 14px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--line);
-  font-size: 13px;
+  font-size: 12px;
   color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.mail-route .mail-account strong {
+  display: block;
+  font-size: 13px;
+  color: var(--ink);
+  font-weight: 600;
 }
 
 /* ── Mail folder heading ───────────────────────────────── */
@@ -6229,11 +6397,16 @@ code {
 .mail-route .mail-selection {
   color: var(--ink-soft);
   font-size: 13px;
+  white-space: nowrap;
+}
+
+.mail-route .mail-selection input[type="checkbox"] {
+  accent-color: var(--accent);
 }
 
 /* ── Mail progress ─────────────────────────────────────── */
 .mail-route .mail-progress {
-  height: 3px;
+  height: 2px;
   background: linear-gradient(90deg, var(--accent), #818cf8, var(--accent));
   background-size: 200% 100%;
   animation: mail-progress 1.5s ease infinite;
@@ -6300,28 +6473,63 @@ code {
 }
 
 /* ── Mail search ───────────────────────────────────────── */
+.mail-route .mail-search {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
 .mail-route .mail-search input {
   background: var(--bg2);
   border: 1px solid var(--panel-border);
   color: var(--ink);
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 6px;
   font-size: 13px;
-  width: 100%;
+  width: 160px;
   box-sizing: border-box;
+  transition: all 0.15s;
+}
+
+.mail-route .mail-search input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.6;
 }
 
 .mail-route .mail-search input:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
+  width: 200px;
+}
+
+.mail-route .mail-search button {
+  background: transparent;
+  border: none;
+  color: var(--ink-soft);
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+  flex: 0 0 auto;
+  margin-left: 2px;
+}
+
+.mail-route .mail-search button:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--ink);
 }
 
 /* ── Mail compose (embedded) ───────────────────────────── */
 .mail-route .mail-compose {
   background: var(--bg);
   border: 1px solid var(--panel-border);
-  border-radius: 8px;
+  border-radius: 12px;
   overflow: hidden;
 }
 

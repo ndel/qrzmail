@@ -960,22 +960,23 @@ export default function MailPage() {
                 checked={messages.length > 0 && selectedUids.length === messages.length}
                 onChange={toggleSelectAll}
               />
-              <span>{selectedUids.length ? `${selectedUids.length} selected` : "Select"}</span>
+              <span>{selectedUids.length ? `${selectedUids.length} selected` : ""}</span>
             </label>
           </div>
           <div className="mail-toolbar-actions" aria-label="Message actions">
-            <button type="button" onClick={() => runBulk("read")} disabled={busy || (!selectedUids.length && !selectedUid)}>
-              <MailOpen size={14} aria-hidden="true" /> Read
+            <button type="button" onClick={() => runBulk("read")} disabled={busy || (!selectedUids.length && !selectedUid)} title="Mark as read">
+              <MailOpen size={15} aria-hidden="true" />
             </button>
-            <button type="button" onClick={() => runBulk("unread")} disabled={busy || (!selectedUids.length && !selectedUid)}>
-              <Mail size={14} aria-hidden="true" /> Unread
+            <button type="button" onClick={() => runBulk("unread")} disabled={busy || (!selectedUids.length && !selectedUid)} title="Mark as unread">
+              <Mail size={15} aria-hidden="true" />
             </button>
-            <button type="button" onClick={() => runBulk("flag")} disabled={busy || (!selectedUids.length && !selectedUid)}>
-              <Star size={14} aria-hidden="true" /> Flag
+            <button type="button" onClick={() => runBulk("flag")} disabled={busy || (!selectedUids.length && !selectedUid)} title="Toggle flag">
+              <Star size={15} aria-hidden="true" />
             </button>
-            <button type="button" onClick={() => runBulk("delete")} disabled={busy || (!selectedUids.length && !selectedUid)}>
-              <Trash2 size={14} aria-hidden="true" /> Delete
+            <button type="button" onClick={() => runBulk("delete")} disabled={busy || (!selectedUids.length && !selectedUid)} title="Delete">
+              <Trash2 size={15} aria-hidden="true" />
             </button>
+            <span className="mail-toolbar-divider" aria-hidden="true" />
             <select value={moveTarget} onChange={(event) => setMoveTarget(event.target.value)} disabled={busy}>
               <option value="">Move to...</option>
               {folders
@@ -986,8 +987,8 @@ export default function MailPage() {
                   </option>
                 ))}
             </select>
-            <button type="button" onClick={() => moveTarget && runBulk("move", moveTarget)} disabled={busy || !moveTarget}>
-              <Folder size={14} aria-hidden="true" /> Move
+            <button type="button" onClick={() => moveTarget && runBulk("move", moveTarget)} disabled={busy || !moveTarget} title="Move">
+              <Folder size={15} aria-hidden="true" />
             </button>
           </div>
           <div className="mail-toolbar-tools">
@@ -998,8 +999,8 @@ export default function MailPage() {
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search mail"
               />
-              <button type="submit" disabled={busy}>
-                <Search size={14} aria-hidden="true" /> Search
+              <button type="submit" disabled={busy} title="Search">
+                <Search size={15} aria-hidden="true" />
               </button>
               {search && (
                 <button
@@ -1009,23 +1010,25 @@ export default function MailPage() {
                     void loadMessages(folder, "");
                   }}
                   disabled={busy}
+                  title="Clear search"
                 >
-                  <X size={14} aria-hidden="true" /> Clear
+                  <X size={15} aria-hidden="true" />
                 </button>
               )}
             </form>
+            <span className="mail-toolbar-divider" aria-hidden="true" />
             <button
               type="button"
               onClick={() => {
                 setOptionsOpen((value) => !value);
                 setMoreOpen(false);
               }}
+              title="View options"
             >
-              <SlidersHorizontal size={14} aria-hidden="true" />
-              Options
+              <SlidersHorizontal size={15} aria-hidden="true" />
             </button>
-            <button type="button" onClick={() => loadMessages(folder, search)} disabled={busy}>
-              <RefreshCw size={14} aria-hidden="true" /> Refresh
+            <button type="button" onClick={() => loadMessages(folder, search)} disabled={busy} title="Refresh">
+              <RefreshCw size={15} aria-hidden="true" />
             </button>
             <button
               type="button"
@@ -1033,8 +1036,9 @@ export default function MailPage() {
                 setMoreOpen((value) => !value);
                 setOptionsOpen(false);
               }}
+              title="More actions"
             >
-              <MoreHorizontal size={14} aria-hidden="true" /> More
+              <MoreHorizontal size={15} aria-hidden="true" />
             </button>
           </div>
         </header>
@@ -1156,24 +1160,25 @@ export default function MailPage() {
                 </div>
               </div>
               <div className="mail-reader-actions">
-                <button type="button" className="mail-mobile-only" onClick={() => setSelected(null)} disabled={busy}>
-                  <ChevronLeft size={14} aria-hidden="true" /> Back
+                <button type="button" className="mail-mobile-only" onClick={() => setSelected(null)} disabled={busy} title="Back">
+                  <ChevronLeft size={15} aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => canOpenPrevious && openMessage(messages[selectedIndex - 1])} disabled={busy || !canOpenPrevious}>
-                  <ArrowUp size={14} aria-hidden="true" /> Previous
+                <button type="button" onClick={() => canOpenPrevious && openMessage(messages[selectedIndex - 1])} disabled={busy || !canOpenPrevious} title="Previous message">
+                  <ArrowUp size={15} aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => canOpenNext && openMessage(messages[selectedIndex + 1])} disabled={busy || !canOpenNext}>
-                  <ArrowDown size={14} aria-hidden="true" /> Next
+                <button type="button" onClick={() => canOpenNext && openMessage(messages[selectedIndex + 1])} disabled={busy || !canOpenNext} title="Next message">
+                  <ArrowDown size={15} aria-hidden="true" />
                 </button>
-                <button type="button" onClick={() => startCompose("reply")} disabled={busy}><MailOpen size={14} aria-hidden="true" /> Reply</button>
-                <button type="button" onClick={() => startCompose("replyAll")} disabled={busy}><MailOpen size={14} aria-hidden="true" /> Reply all</button>
-                <button type="button" onClick={() => startCompose("forward")} disabled={busy}><Send size={14} aria-hidden="true" /> Forward</button>
-                <button type="button" onClick={() => patchSelected(selected.seen ? "unread" : "read")} disabled={busy}>
-                  {selected.seen ? <Mail size={14} aria-hidden="true" /> : <MailOpen size={14} aria-hidden="true" />}
-                  {selected.seen ? "Mark unread" : "Mark read"}
+                <span className="mail-toolbar-divider" aria-hidden="true" />
+                <button type="button" onClick={() => startCompose("reply")} disabled={busy} title="Reply"><MailOpen size={15} aria-hidden="true" /></button>
+                <button type="button" onClick={() => startCompose("replyAll")} disabled={busy} title="Reply all"><MailOpen size={15} aria-hidden="true" /></button>
+                <button type="button" onClick={() => startCompose("forward")} disabled={busy} title="Forward"><Send size={15} aria-hidden="true" /></button>
+                <span className="mail-toolbar-divider" aria-hidden="true" />
+                <button type="button" onClick={() => patchSelected(selected.seen ? "unread" : "read")} disabled={busy} title={selected.seen ? "Mark unread" : "Mark read"}>
+                  {selected.seen ? <Mail size={15} aria-hidden="true" /> : <MailOpen size={15} aria-hidden="true" />}
                 </button>
-                <button type="button" onClick={() => patchSelected(selected.flagged ? "unflag" : "flag")} disabled={busy}>
-                  <Star size={14} aria-hidden="true" /> {selected.flagged ? "Unflag" : "Flag"}
+                <button type="button" onClick={() => patchSelected(selected.flagged ? "unflag" : "flag")} disabled={busy} title={selected.flagged ? "Unflag" : "Flag"}>
+                  <Star size={15} aria-hidden="true" />
                 </button>
                 <select value={moveTarget} onChange={(event) => setMoveTarget(event.target.value)} disabled={busy}>
                   <option value="">Move to...</option>
@@ -1185,11 +1190,11 @@ export default function MailPage() {
                       </option>
                     ))}
                 </select>
-                <button type="button" onClick={() => moveTarget && patchSelected("move", moveTarget)} disabled={busy || !moveTarget}>
-                  <Folder size={14} aria-hidden="true" /> Move
+                <button type="button" onClick={() => moveTarget && patchSelected("move", moveTarget)} disabled={busy || !moveTarget} title="Move">
+                  <Folder size={15} aria-hidden="true" />
                 </button>
-                <button type="button" className="mail-danger" onClick={deleteSelected} disabled={busy}>
-                  <Trash2 size={14} aria-hidden="true" /> Delete
+                <button type="button" className="mail-danger" onClick={deleteSelected} disabled={busy} title="Delete">
+                  <Trash2 size={15} aria-hidden="true" />
                 </button>
               </div>
             </header>
