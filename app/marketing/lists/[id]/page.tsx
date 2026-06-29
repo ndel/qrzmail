@@ -137,6 +137,16 @@ export default function ListDetailPage() {
   const [importResult, setImportResult] = useState<any>(null);
   const [csvFileName, setCsvFileName] = useState("");
 
+  // Add single contact form
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [addEmail, setAddEmail] = useState("");
+  const [addName, setAddName] = useState("");
+  const [addCompany, setAddCompany] = useState("");
+  const [addPhone, setAddPhone] = useState("");
+  const [addingContact, setAddingContact] = useState(false);
+  const [addError, setAddError] = useState("");
+  const [addSuccess, setAddSuccess] = useState("");
+
   // Contacts
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [contactsLoading, setContactsLoading] = useState(true);
@@ -279,6 +289,45 @@ export default function ListDetailPage() {
     loadList();
   };
 
+  const handleAddContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = addEmail.trim();
+    if (!email) { setAddError("Email is required"); return; }
+    setAddingContact(true);
+    setAddError("");
+    setAddSuccess("");
+    try {
+      const res = await fetch("/api/marketing/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          list_id: id,
+          email,
+          name: addName.trim() || undefined,
+          company: addCompany.trim() || undefined,
+          phone: addPhone.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAddError(data.error || "Failed to add contact");
+      } else {
+        setAddSuccess(`Contact "${email}" added successfully!`);
+        setAddEmail("");
+        setAddName("");
+        setAddCompany("");
+        setAddPhone("");
+        setShowAddForm(false);
+        loadList();
+        loadContacts(1);
+        setPage(1);
+      }
+    } catch (err: any) {
+      setAddError(err.message || "Failed to add contact");
+    }
+    setAddingContact(false);
+  };
+
   const hasEmailMapped = Object.values(columnMapping).includes("email");
 
   if (loading) return <main className="marketing-content"><p>Loading...</p></main>;
@@ -345,7 +394,84 @@ export default function ListDetailPage() {
 
       {/* Contacts Section */}
       <div className="section">
-        <h2 className="section-title">Contacts ({total})</h2>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
+          <h2 className="section-title" style={{ margin: 0 }}>Contacts ({total})</h2>
+          <button className="btn btn-primary btn-sm" onClick={() => { setShowAddForm(!showAddForm); setAddError(""); setAddSuccess(""); }}>
+            {showAddForm ? "Cancel" : "+ Add Contact"}
+          </button>
+        </div>
+
+        {/* Add Single Contact Form */}
+        {showAddForm && (
+          <div className="card" style={{ marginBottom: "1.25rem", padding: "1.25rem" }}>
+            <h3 style={{ fontSize: "0.95rem", fontWeight: 600, margin: "0 0 0.75rem 0" }}>Add Contact Manually</h3>
+            <form onSubmit={handleAddContact} style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+              <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
+                <div className="form-group" style={{ flex: "1 1 200px", margin: 0 }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#374151", marginBottom: "0.25rem" }}>
+                    Email <span style={{ color: "#dc2626" }}>*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={addEmail}
+                    onChange={(e) => setAddEmail(e.target.value)}
+                    placeholder="contact@example.com"
+                    required
+                    style={{ width: "100%", padding: "0.45rem 0.6rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div className="form-group" style={{ flex: "1 1 200px", margin: 0 }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#374151", marginBottom: "0.25rem" }}>Name</label>
+                  <input
+                    type="text"
+                    value={addName}
+                    onChange={(e) => setAddName(e.target.value)}
+                    placeholder="John Doe"
+                    style={{ width: "100%", padding: "0.45rem 0.6rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div className="form-group" style={{ flex: "1 1 200px", margin: 0 }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#374151", marginBottom: "0.25rem" }}>Company</label>
+                  <input
+                    type="text"
+                    value={addCompany}
+                    onChange={(e) => setAddCompany(e.target.value)}
+                    placeholder="Acme Inc."
+                    style={{ width: "100%", padding: "0.45rem 0.6rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div className="form-group" style={{ flex: "1 1 200px", margin: 0 }}>
+                  <label style={{ display: "block", fontSize: "0.8rem", fontWeight: 600, color: "#374151", marginBottom: "0.25rem" }}>Phone</label>
+                  <input
+                    type="text"
+                    value={addPhone}
+                    onChange={(e) => setAddPhone(e.target.value)}
+                    placeholder="+1 555-123-4567"
+                    style={{ width: "100%", padding: "0.45rem 0.6rem", border: "1px solid #cbd5e1", borderRadius: "6px", fontSize: "0.85rem", boxSizing: "border-box" }}
+                  />
+                </div>
+              </div>
+              {addError && (
+                <div style={{ padding: "0.5rem 0.75rem", borderRadius: "6px", fontSize: "0.85rem", background: "#fef2f2", border: "1px solid #fecaca", color: "#991b1b" }}>
+                  {addError}
+                </div>
+              )}
+              {addSuccess && (
+                <div style={{ padding: "0.5rem 0.75rem", borderRadius: "6px", fontSize: "0.85rem", background: "#f0fdf4", border: "1px solid #bbf7d0", color: "#166534" }}>
+                  {addSuccess}
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "0.5rem" }}>
+                <button type="submit" className="btn btn-primary" disabled={addingContact}>
+                  {addingContact ? "Adding..." : "Add Contact"}
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => { setShowAddForm(false); setAddError(""); setAddSuccess(""); }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
 
         <div className="filters" style={{ marginBottom: "1rem" }}>
           <input
