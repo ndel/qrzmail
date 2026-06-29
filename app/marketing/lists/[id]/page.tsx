@@ -379,6 +379,7 @@ export default function ListDetailPage() {
                     <th>Email</th>
                     <th>Name</th>
                     <th>Company</th>
+                    <th>Phone</th>
                     <th>Status</th>
                     <th>Created</th>
                     <th>Actions</th>
@@ -390,6 +391,7 @@ export default function ListDetailPage() {
                       <td>{c.email}</td>
                       <td>{c.name || "\u2014"}</td>
                       <td>{c.company || "\u2014"}</td>
+                      <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.phone || "\u2014"}</td>
                       <td><span className={`badge badge-${c.status}`}>{c.status}</span></td>
                       <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.created_at}</td>
                       <td>

@@ -8,6 +8,7 @@ interface Contact {
   email: string;
   name?: string;
   company?: string;
+  phone?: string;
   status: string;
   created_at: string;
 }
@@ -95,6 +96,7 @@ function ContactsContent() {
                   <th>Email</th>
                   <th>Name</th>
                   <th>Company</th>
+                  <th>Phone</th>
                   <th>Status</th>
                   <th>Created</th>
                   <th>Actions</th>
@@ -106,6 +108,7 @@ function ContactsContent() {
                     <td>{c.email}</td>
                     <td>{c.name || "—"}</td>
                     <td>{c.company || "—"}</td>
+                    <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.phone || "—"}</td>
                     <td><span className={`badge badge-${c.status}`}>{c.status}</span></td>
                     <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.created_at}</td>
                     <td><button className="btn btn-danger btn-sm" onClick={() => handleDelete(c.id)}>Delete</button></td>
