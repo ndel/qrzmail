@@ -18,34 +18,36 @@ export async function findContactsByNiche(
   apiKey: string,
   count: number = 20
 ): Promise<FindContactsResult> {
-  const prompt = `You are a lead generation research assistant. I need you to find real, plausible email contacts for the following niche:
+  const prompt = `You are a lead generation research assistant. I need you to generate realistic-looking sample contact data for the following niche:
 
 "${niche}"
 
-Please generate ${count} realistic contact entries. For each contact, provide:
-- email (required - make it look realistic like firstname@company.com)
-- name (full name)
-- company (company name)
+Generate ${count} sample contact entries that follow real-world patterns for this industry. For each contact, provide:
+- email (use realistic domain names based on real company naming patterns in this niche)
+- name (full name — use diverse, realistic names)
+- company (use company names that follow real naming conventions for this industry)
 - phone (optional, in international format)
-- title (job title)
-- source (a plausible source URL where this contact might be found, like a company website or LinkedIn)
+- title (job title — use realistic titles common in this niche)
+- source (a plausible source URL like a company website or LinkedIn profile)
 
-IMPORTANT: Return ONLY valid JSON in the following format, no markdown, no code fences, no explanation:
+IMPORTANT GUIDELINES:
+- Use REALISTIC company domain names (e.g., if the niche is "SaaS founders", use domains like getanalytics.io, cloudscale.com, etc.)
+- Do NOT use placeholder domains like example.com, company.com, test.com — use realistic ones
+- Make names, companies, and titles diverse and specific to the niche
+- Return ONLY valid JSON, no markdown, no code fences, no explanation:
 {
-  "summary": "Brief description of what was found",
+  "summary": "Brief description of the generated sample data",
   "contacts": [
     {
-      "email": "john.doe@example.com",
+      "email": "john.doe@realcompany.io",
       "name": "John Doe",
-      "company": "Example Corp",
+      "company": "Real Company Inc",
       "phone": "+1-555-0100",
       "title": "CEO",
-      "source": "https://example.com/team"
+      "source": "https://realcompany.io/team"
     }
   ]
-}
-
-Make the contacts diverse and realistic for the given niche. Use real-looking company names and email patterns.`;
+}`;
 
   const response = await fetch("https://api.deepseek.com/v1/chat/completions", {
     method: "POST",
