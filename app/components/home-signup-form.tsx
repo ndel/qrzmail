@@ -133,7 +133,7 @@ export default function HomeSignupForm() {
 
       <p style={{ marginTop: "16px", fontSize: "13px", color: "var(--ink-soft)", textAlign: "center" }}>
         Already have an account?{" "}
-        <Link href="/login" className="text-link">
+        <Link href="/mail" className="text-link">
           Sign in
         </Link>
       </p>
