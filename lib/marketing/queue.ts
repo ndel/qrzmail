@@ -1,18 +1,20 @@
 import crypto from "crypto";
 import db from "@/lib/db";
 import { sendEmail } from "./smtp";
-import { generateTrackingId, generateRedirectToken, generateUnsubscribeToken, injectTracking, injectUnsubscribeLink } from "./tracking";
+import { generateTrackingId, generateRedirectToken, generateUnsubscribeToken, injectTracking } from "./tracking";
 
 const BASE_URL = process.env.BASE_URL || "https://qrzmail.com";
 
-function resolveVariables(template: string, contact: { name?: string; email: string; company?: string; phone?: string; custom_fields?: string }): string {
+function resolveVariables(template: string, contact: { name?: string; email: string; company?: string; phone?: string; custom_fields?: string }, unsubscribeToken?: string): string {
   const customFields = JSON.parse(contact.custom_fields || "{}");
+  const unsubscribeUrl = unsubscribeToken ? `${BASE_URL}/api/marketing/unsubscribe?token=${unsubscribeToken}` : "";
   const vars: Record<string, string> = {
     "{{name}}": contact.name || "",
     "{{email}}": contact.email,
     "{{company}}": contact.company || "",
     "{{phone}}": contact.phone || "",
     "{{first_name}}": (contact.name || "").split(" ")[0] || "",
+    "{{unsubscribe_link}}": unsubscribeUrl,
     ...Object.fromEntries(Object.entries(customFields).map(([k, v]) => [`{{${k}}}`, String(v || "")])),
   };
   let result = template;
@@ -55,9 +57,9 @@ export function enqueueCampaign(campaignId: string): { enqueued: number; errors:
           unsubscribeToken = generateUnsubscribeToken();
           updateContactToken.run(unsubscribeToken, contact.id);
         }
-        const subject = resolveVariables(template.subject, contact);
-        let htmlBody = resolveVariables(template.html_content, contact);
-        const plainBody = template.plain_content ? resolveVariables(template.plain_content, contact) : undefined;
+        const subject = resolveVariables(template.subject, contact, unsubscribeToken);
+        let htmlBody = resolveVariables(template.html_content, contact, unsubscribeToken);
+        const plainBody = template.plain_content ? resolveVariables(template.plain_content, contact, unsubscribeToken) : undefined;
 
         const linkRegex = /href="(https?:\/\/[^"]+)"/gi;
         const links: Array<{ id: string; url: string; redirectToken: string }> = [];
@@ -72,8 +74,6 @@ export function enqueueCampaign(campaignId: string): { enqueued: number; errors:
         }
 
         htmlBody = injectTracking(htmlBody, trackingId, links);
-        const unsubscribeUrl = `${BASE_URL}/api/marketing/unsubscribe?token=${unsubscribeToken}`;
-        htmlBody = injectUnsubscribeLink(htmlBody, unsubscribeUrl);
 
         insertQueue.run(queueId, campaignId, contact.id, campaign.provider_id, campaign.owner_id, subject, htmlBody, plainBody || null, trackingId);
         for (const link of links) {
