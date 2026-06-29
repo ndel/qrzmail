@@ -2665,12 +2665,6 @@ code {
   cursor: not-allowed;
 }
 
-.mail-sogo-link {
-  text-align: center;
-  color: var(--accent-light);
-  font-weight: 700;
-}
-
 .mail-error {
   border: 1px solid rgba(240, 189, 192, 0.5);
   background: rgba(255, 240, 241, 0.15);

@@ -883,9 +883,6 @@ export default function MailPage() {
           <button className="mail-primary" disabled={busy}>
             {busy ? "Signing in..." : "Sign in"}
           </button>
-          <a href="https://mail.qrzmail.com/SOGo/" className="mail-sogo-link">
-            Open existing SOGo webmail
-          </a>
         </form>
       </div>
     );
