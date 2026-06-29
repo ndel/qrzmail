@@ -73,8 +73,6 @@ export default function NavUser() {
     <>
       <Link href="/pricing">Pricing</Link>
       <Link href="/mail">Mail</Link>
-      <Link href="/domains/login">Domain panel</Link>
-      <Link href="/marketing">Marketing</Link>
       <Link href="/signup" className="cta">
         Sign up free
       </Link>
