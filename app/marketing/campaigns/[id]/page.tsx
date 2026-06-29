@@ -77,9 +77,19 @@ export default function CampaignDetailPage() {
 
   return (
     <main className="marketing-content">
-      <div className="page-heading">
-        <h1>{campaign.name}</h1>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+      <div className="panel-header-row" style={{ marginBottom: "28px" }}>
+        <div className="panel-header-left">
+          <div className="panel-icon" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))", border: "1px solid rgba(99,102,241,0.15)", color: "#818cf8" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" />
+            </svg>
+          </div>
+          <div className="panel-header-text">
+            <h1>{campaign.name}</h1>
+            <p>Campaign details and delivery report</p>
+          </div>
+        </div>
+        <div className="panel-header-actions">
           {campaign.status === "draft" && <button className="btn btn-primary" onClick={() => handleAction("send")}>Send Now</button>}
           {campaign.status === "sending" && <button className="btn btn-secondary" onClick={() => handleAction("pause")}>Pause</button>}
           {campaign.status === "paused" && <button className="btn btn-primary" onClick={() => handleAction("resume")}>Resume</button>}

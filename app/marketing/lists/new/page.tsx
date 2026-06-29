@@ -20,8 +20,18 @@ export default function NewListPage() {
 
   return (
     <main className="marketing-content">
-      <div className="page-heading">
-        <h1>New Mailing List</h1>
+      <div className="panel-header-row" style={{ marginBottom: "28px" }}>
+        <div className="panel-header-left">
+          <div className="panel-icon" style={{ background: "linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,191,36,0.05))", border: "1px solid rgba(251,191,36,0.15)", color: "#fbbf24" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+            </svg>
+          </div>
+          <div className="panel-header-text">
+            <h1>New Mailing List</h1>
+            <p>Create a new mailing list for your contacts</p>
+          </div>
+        </div>
       </div>
       <form onSubmit={handleSubmit} className="card">
         <div className="form-group">

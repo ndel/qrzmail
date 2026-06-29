@@ -74,8 +74,18 @@ export default function FindContactsPage() {
 
   return (
     <main className="marketing-content">
-      <div className="page-heading">
-        <h1>Find Contacts</h1>
+      <div className="panel-header-row" style={{ marginBottom: "28px" }}>
+        <div className="panel-header-left">
+          <div className="panel-icon" style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.05))", border: "1px solid rgba(168,85,247,0.15)", color: "#c084fc" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </div>
+          <div className="panel-header-text">
+            <h1>Find Contacts</h1>
+            <p>Discover and import new contacts using AI-powered search</p>
+          </div>
+        </div>
       </div>
 
       <form onSubmit={handleSearch} className="card" style={{ marginBottom: "1.5rem" }}>

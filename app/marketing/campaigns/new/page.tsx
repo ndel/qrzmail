@@ -40,8 +40,18 @@ export default function NewCampaignPage() {
 
   return (
     <main className="marketing-content">
-      <div className="page-heading">
-        <h1>New Campaign</h1>
+      <div className="panel-header-row" style={{ marginBottom: "28px" }}>
+        <div className="panel-header-left">
+          <div className="panel-icon" style={{ background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(99,102,241,0.05))", border: "1px solid rgba(99,102,241,0.15)", color: "#818cf8" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="4" width="20" height="16" rx="2" /><path d="M22 7l-10 7L2 7" />
+            </svg>
+          </div>
+          <div className="panel-header-text">
+            <h1>New Campaign</h1>
+            <p>Set up a new email marketing campaign</p>
+          </div>
+        </div>
       </div>
 
       {providers.length === 0 ? (

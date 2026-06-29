@@ -89,11 +89,23 @@ export default function ProvidersPage() {
 
   return (
     <main className="marketing-content">
-      <div className="page-heading">
-        <h1>SMTP Providers</h1>
-        <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
-          {showForm ? "Cancel" : "+ Add Provider"}
-        </button>
+      <div className="panel-header-row" style={{ marginBottom: "28px" }}>
+        <div className="panel-header-left">
+          <div className="panel-icon" style={{ background: "linear-gradient(135deg, rgba(248,113,113,0.2), rgba(248,113,113,0.05))", border: "1px solid rgba(248,113,113,0.15)", color: "#f87171" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="2" width="20" height="8" rx="2" ry="2" /><rect x="2" y="14" width="20" height="8" rx="2" ry="2" /><line x1="6" y1="6" x2="6.01" y2="6" /><line x1="6" y1="18" x2="6.01" y2="18" />
+            </svg>
+          </div>
+          <div className="panel-header-text">
+            <h1>SMTP Providers</h1>
+            <p>Configure SMTP and IMAP settings for sending campaigns</p>
+          </div>
+        </div>
+        <div className="panel-header-actions">
+          <button className="btn btn-primary" onClick={() => setShowForm(!showForm)}>
+            {showForm ? "Cancel" : "+ Add Provider"}
+          </button>
+        </div>
       </div>
 
       {showForm && (

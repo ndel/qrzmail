@@ -52,9 +52,19 @@ function ContactsContent() {
 
   return (
     <>
-      <div className="page-heading">
-        <h1>Contacts ({total})</h1>
-        <div style={{ display: "flex", gap: "0.5rem" }}>
+      <div className="panel-header-row" style={{ marginBottom: "28px" }}>
+        <div className="panel-header-left">
+          <div className="panel-icon" style={{ background: "linear-gradient(135deg, rgba(168,85,247,0.2), rgba(168,85,247,0.05))", border: "1px solid rgba(168,85,247,0.15)", color: "#c084fc" }}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
+            </svg>
+          </div>
+          <div className="panel-header-text">
+            <h1>Contacts</h1>
+            <p>Manage your contact list — {total} total contacts</p>
+          </div>
+        </div>
+        <div className="panel-header-actions">
           <Link href="/marketing/contacts/find" className="btn btn-secondary">Find Contacts</Link>
         </div>
       </div>
