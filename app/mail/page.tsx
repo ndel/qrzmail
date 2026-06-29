@@ -463,6 +463,10 @@ export default function MailPage() {
       });
       const body = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error((body as { error?: string }).error ?? "Login failed.");
+      // Store CSRF token for domain management / marketing API requests
+      if ((body as { csrfToken?: string }).csrfToken) {
+        sessionStorage.setItem("csrfToken", (body as { csrfToken: string }).csrfToken);
+      }
       setPassword("");
       setAccount((body as { email: string }).email);
       await loadFolders();

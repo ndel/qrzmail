@@ -175,7 +175,7 @@ export default function ForgotPasswordPage() {
         )}
 
         <p style={{ marginTop: "24px", fontSize: "13px", textAlign: "center" }}>
-          Remembered your password? <Link href="/" className="text-link">Log in</Link>
+          Remembered your password? <Link href="/mail" className="text-link">Log in</Link>
         </p>
       </div>
     </div>

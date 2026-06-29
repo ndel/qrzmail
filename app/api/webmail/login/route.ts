@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { normalizeMailboxEmail, verifyMailboxLogin } from "@/lib/webmail";
 import { encryptWebmailSession, WEBMAIL_COOKIE_NAME } from "@/lib/webmail-session";
 import { createSessionToken, hashPassword } from "@/lib/auth";
+import { generateCsrfToken } from "@/lib/session";
 import {
   setAccountAuthCookies,
   setWebmailSessionCookie,
@@ -53,11 +54,12 @@ export async function POST(request: Request) {
     }
 
     const sessionToken = createSessionToken(user, password);
-    const response = NextResponse.json({ email });
+    const csrfToken = generateCsrfToken();
+    const response = NextResponse.json({ email, csrfToken });
 
     // Set ALL cookies on the response object to avoid conflicts between
     // the cookies() API (next/headers) and response.cookies.set().
-    setAccountAuthCookies(response, sessionToken);
+    setAccountAuthCookies(response, sessionToken, csrfToken);
 
     // Set the webmail session cookie on the response too (not via cookies() API)
     const webmailPayload = {

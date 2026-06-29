@@ -592,6 +592,11 @@ img { display: block; max-width: 100%; }
   margin: 0;
 }
 
+/* Add horizontal spacing to domain and marketing panel content */
+.domains-route .main {
+  padding: 0 24px;
+}
+
 /* ── Buttons ─────────────────────────────────────────────── */
 .button {
   display: inline-flex;
