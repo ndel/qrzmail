@@ -81,13 +81,6 @@ export default async function Home() {
             </div>
 
             <HomeSignupForm />
-
-            <p className="home-card-footer">
-              Already have an account?{" "}
-              <Link href="/login" className="text-link">
-                Sign in to webmail
-              </Link>
-            </p>
           </div>
         </div>
       </section>

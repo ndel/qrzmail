@@ -24,7 +24,6 @@ import {
   Link2,
   List,
   ListOrdered,
-  LogOut,
   Mail,
   MailOpen,
   MoreHorizontal,
@@ -932,9 +931,6 @@ export default function MailPage() {
             <span>Total mail</span>
             <strong>{totalFolderCount}</strong>
           </div>
-          <button onClick={handleLogout} type="button">
-            <LogOut size={14} aria-hidden="true" /> Sign out
-          </button>
         </div>
       </aside>
 

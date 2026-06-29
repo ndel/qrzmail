@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
 interface User {
@@ -23,7 +23,6 @@ const navItems = [
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -36,17 +35,10 @@ export default function Sidebar() {
             email: data.user.email,
             name: data.user.name || "",
           });
-        } else {
-          router.push("/domains/login");
         }
       })
-      .catch(() => router.push("/domains/login"));
-  }, [router]);
-
-  const handleLogout = async () => {
-    await fetch("/api/account/logout", { method: "POST" });
-    router.push("/");
-  };
+      .catch(() => {});
+  }, []);
 
   return (
     <aside className="marketing-sidebar">
@@ -72,11 +64,6 @@ export default function Sidebar() {
           </Link>
         ))}
       </nav>
-      <div className="sidebar-footer">
-        <button onClick={handleLogout} className="sidebar-logout">
-          Logout
-        </button>
-      </div>
       <style>{`
         .marketing-sidebar {
           width: 240px;

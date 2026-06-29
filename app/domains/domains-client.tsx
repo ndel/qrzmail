@@ -284,11 +284,6 @@ export default function DomainsClient() {
 
   useEffect(() => { void loadData(); }, []);
 
-  async function handleLogout() {
-    await fetch("/api/account/logout", { method: "POST", headers: csrfHeaders() });
-    window.location.href = "/domains/login";
-  }
-
   async function handleSendResetEmail(mailboxId: string) {
     setState({ type: "loading" });
     const response = await fetch("/api/mailboxes/send-reset", {
@@ -532,9 +527,6 @@ export default function DomainsClient() {
           )}
           <button className="button ghost" onClick={() => { void loadData(); }} type="button" title="Refresh data">
             <IconRefresh /> Refresh
-          </button>
-          <button className="button ghost" onClick={() => { void handleLogout(); }} type="button" title="Logout" style={{ color: "var(--ink-soft)" }}>
-            Logout
           </button>
         </div>
       </div>

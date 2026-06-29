@@ -42,7 +42,7 @@ export default function NavUser() {
   async function handleLogout() {
     await fetch("/api/account/logout", { method: "POST" });
     setUser(null);
-    router.push("/domains/login");
+    router.push("/");
   }
 
   if (loading) {
