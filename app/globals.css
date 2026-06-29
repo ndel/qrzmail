@@ -1771,7 +1771,8 @@ code {
 
 .domains-dashboard {
   display: grid;
-  gap: 24px;
+  gap: 28px;
+  padding: 4px;
 }
 
 /* Header */
@@ -1839,14 +1840,14 @@ code {
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
+  gap: 16px;
 }
 
 .stat-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px 20px;
+  gap: 16px;
+  padding: 22px 24px;
   border: 1px solid var(--panel-border);
   border-radius: 14px;
   background: var(--panel);
@@ -1958,12 +1959,12 @@ code {
 /* Tab Content */
 .tab-content {
   display: grid;
-  gap: 20px;
+  gap: 24px;
 }
 
 /* Dash Card */
 .dash-card {
-  padding: 24px;
+  padding: 28px;
   border: 1px solid var(--panel-border);
   border-radius: 16px;
   background: var(--panel);
@@ -2078,7 +2079,7 @@ code {
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 24px 28px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -2116,7 +2117,7 @@ code {
 .setup-progress {
   display: flex;
   align-items: center;
-  padding: 16px 24px;
+  padding: 20px 28px;
   gap: 0;
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
@@ -2187,11 +2188,11 @@ code {
 .domain-actions {
   display: grid;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 24px 28px;
 }
 
 .domain-action-card {
-  padding: 18px;
+  padding: 20px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: rgba(255,255,255,0.03);
@@ -2284,8 +2285,8 @@ code {
 .mailbox-card {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
+  gap: 16px;
+  padding: 18px 24px;
   border: 1px solid var(--panel-border);
   border-radius: 12px;
   background: var(--panel);
