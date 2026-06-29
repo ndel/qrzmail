@@ -24,6 +24,8 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
 ENV PORT=3000
+ARG REDIS_PASSWORD
+ENV REDIS_PASSWORD=${REDIS_PASSWORD}
 
 RUN addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs \

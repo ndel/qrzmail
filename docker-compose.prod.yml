@@ -13,6 +13,7 @@ services:
       MAILCOW_API_KEY: "${MAILCOW_API_KEY}"
       MAIL_DOMAIN: "qrzmail.com"
       SESSION_SECRET: "${SESSION_SECRET}"
+      REDIS_PASSWORD: "${REDIS_PASSWORD}"
       QRZMAIL_DATA_DIR: "/data"
       WEBMAIL_URL: "https://mail.qrzmail.com/SOGo/"
       WEBMAIL_BASE_URL: "https://mail.qrzmail.com/SOGo/so/"
