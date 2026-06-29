@@ -17,6 +17,7 @@ interface Contact {
   name?: string;
   company?: string;
   phone?: string;
+  custom_fields?: string;
   status: string;
   created_at: string;
 }
@@ -380,25 +381,40 @@ export default function ListDetailPage() {
                     <th>Name</th>
                     <th>Company</th>
                     <th>Phone</th>
+                    <th>Website</th>
                     <th>Status</th>
                     <th>Created</th>
                     <th>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {contacts.map((c) => (
-                    <tr key={c.id}>
-                      <td>{c.email}</td>
-                      <td>{c.name || "\u2014"}</td>
-                      <td>{c.company || "\u2014"}</td>
-                      <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.phone || "\u2014"}</td>
-                      <td><span className={`badge badge-${c.status}`}>{c.status}</span></td>
-                      <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.created_at}</td>
-                      <td>
-                        <button className="btn btn-danger btn-sm" onClick={() => handleDeleteContact(c.id)}>Delete</button>
-                      </td>
-                    </tr>
-                  ))}
+                  {contacts.map((c) => {
+                    let website = "";
+                    try {
+                      const cf = JSON.parse(c.custom_fields || "{}");
+                      website = cf.website || "";
+                    } catch {}
+                    return (
+                      <tr key={c.id}>
+                        <td>{c.email}</td>
+                        <td>{c.name || "\u2014"}</td>
+                        <td>{c.company || "\u2014"}</td>
+                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.phone || "\u2014"}</td>
+                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>
+                          {website ? (
+                            <a href={`https://${website.replace(/^https?:\/\//, "")}`} target="_blank" rel="noopener noreferrer" style={{ color: "#2563eb", textDecoration: "none" }}>
+                              {website}
+                            </a>
+                          ) : "\u2014"}
+                        </td>
+                        <td><span className={`badge badge-${c.status}`}>{c.status}</span></td>
+                        <td style={{ fontSize: "0.8rem", color: "#64748b" }}>{c.created_at}</td>
+                        <td>
+                          <button className="btn btn-danger btn-sm" onClick={() => handleDeleteContact(c.id)}>Delete</button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
