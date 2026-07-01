@@ -100,6 +100,18 @@ const stmtInsertAlias = db.prepare(
 );
 const stmtDeleteAllAliases = db.prepare("DELETE FROM aliases");
 
+// --- marketing tables (must be deleted before users due to NO ACTION FKs) ---
+const stmtDeleteAllMarketingLinks = db.prepare("DELETE FROM marketing_links");
+const stmtDeleteAllMarketingFeedback = db.prepare("DELETE FROM marketing_feedback");
+const stmtDeleteAllMarketingQueue = db.prepare("DELETE FROM marketing_queue");
+const stmtDeleteAllMarketingCampaigns = db.prepare("DELETE FROM marketing_campaigns");
+const stmtDeleteAllMarketingContacts = db.prepare("DELETE FROM marketing_contacts");
+const stmtDeleteAllMarketingLists = db.prepare("DELETE FROM marketing_lists");
+const stmtDeleteAllMarketingProviders = db.prepare("DELETE FROM marketing_providers");
+const stmtDeleteAllMarketingTemplates = db.prepare("DELETE FROM marketing_templates");
+const stmtDeleteAllMarketingSegments = db.prepare("DELETE FROM marketing_segments");
+const stmtDeleteAllUserSettings = db.prepare("DELETE FROM user_settings");
+
 // ---------------------------------------------------------------------------
 // Row mapping helpers
 // ---------------------------------------------------------------------------
@@ -294,6 +306,19 @@ export function readData(): Data {
 
 export function writeData(data: Data) {
   const writeAll = db.transaction(() => {
+    // Delete marketing tables first (they have NO ACTION FKs that would
+    // conflict with the cascade delete from users)
+    stmtDeleteAllMarketingLinks.run();
+    stmtDeleteAllMarketingFeedback.run();
+    stmtDeleteAllMarketingQueue.run();
+    stmtDeleteAllMarketingCampaigns.run();
+    stmtDeleteAllMarketingContacts.run();
+    stmtDeleteAllMarketingLists.run();
+    stmtDeleteAllMarketingProviders.run();
+    stmtDeleteAllMarketingTemplates.run();
+    stmtDeleteAllMarketingSegments.run();
+    stmtDeleteAllUserSettings.run();
+
     stmtDeleteAllUsers.run();
     stmtDeleteAllDomains.run();
     stmtDeleteAllMailboxes.run();
