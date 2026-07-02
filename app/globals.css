@@ -5429,7 +5429,8 @@ code {
   grid-template-rows: 88px auto auto auto minmax(0, 1fr) auto;
   gap: 0;
   padding: 0 20px 18px;
-  overflow: hidden;
+  overflow-y: auto;
+  overflow-x: hidden;
   border: 0;
   border-radius: 0;
   background: linear-gradient(135deg, #0f1923 0%, #15222e 50%, #111b26 100%);
