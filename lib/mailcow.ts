@@ -39,6 +39,9 @@ async function mailcowRequest(path: string, body: unknown) {
     throw new Error("MAILCOW_API_KEY is not configured.");
   }
 
+  const { log } = await import("./middleware");
+  log("info", "mailcowRequest", { path, bodyType: Array.isArray(body) ? "array" : typeof body });
+
   const response = await fetch(`${MAILCOW_API_URL}${path}`, {
     method: "POST",
     headers: {
@@ -50,6 +53,13 @@ async function mailcowRequest(path: string, body: unknown) {
 
   const result = await response.json().catch(() => null);
 
+  log("info", "mailcowRequest response", {
+    path,
+    status: response.status,
+    ok: response.ok,
+    resultPreview: result ? JSON.stringify(result).substring(0, 500) : null,
+  });
+
   if (!response.ok) {
     throw new MailcowApiError(
       `Mail server request failed: ${formatMailcowMessage(result) || response.statusText}`,
@@ -60,6 +70,11 @@ async function mailcowRequest(path: string, body: unknown) {
   const entries = Array.isArray(result) ? result : [result];
   const failed = entries.find((entry) => entry?.type && entry.type !== "success");
   if (failed) {
+    log("warn", "mailcowRequest rejected", {
+      path,
+      failedType: failed.type,
+      failedMsg: formatMailcowMessage(failed.msg),
+    });
     throw new MailcowApiError(
       formatMailcowMessage(failed.msg) || "Mail server rejected the request.",
       response.status,

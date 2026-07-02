@@ -86,6 +86,13 @@ export function validateCsrf(request: Request): boolean {
   const headerToken = request.headers.get(CSRF_HEADER_NAME);
 
   if (!cookieToken || !headerToken || cookieToken.length !== headerToken.length) {
+    const { log } = require("./middleware");
+    log("warn", "CSRF token mismatch", {
+      hasCookieToken: !!cookieToken,
+      hasHeaderToken: !!headerToken,
+      cookieTokenLen: cookieToken?.length ?? 0,
+      headerTokenLen: headerToken?.length ?? 0,
+    });
     return false;
   }
 

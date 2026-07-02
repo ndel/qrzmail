@@ -252,25 +252,45 @@ export async function DELETE(request: Request, context: Params) {
 
   const user = await getCurrentUser();
   if (!user) {
+    log("warn", "DELETE mailbox — no user session", { path: new URL(request.url).pathname });
     const response = NextResponse.json({ error: "Login required." }, { status: 401 });
     logResponse(request, response, startTime);
     return response;
   }
 
+  log("info", "DELETE mailbox — user authenticated", { userId: user.id, email: user.email });
+
   // CSRF check
   const csrfError = requireCsrf(request);
   if (csrfError) {
+    log("warn", "DELETE mailbox — CSRF validation failed", {
+      userId: user.id,
+      cookieHeader: request.headers.get("cookie")?.substring(0, 200),
+      csrfHeader: request.headers.get("x-csrf-token")?.substring(0, 20),
+    });
     logResponse(request, csrfError, startTime);
     return csrfError;
   }
 
   const { id } = await context.params;
+  log("info", "DELETE mailbox — params resolved", { id });
 
   // Find the mailbox in local data — authorize via domain ownership
   const mailbox = await updateData((data) => {
     const mb = data.mailboxes.find((entry) => entry.id === id);
-    if (!mb) return null;
+    if (!mb) {
+      log("warn", "DELETE mailbox — mailbox not found in local data", { id });
+      return null;
+    }
     const domain = data.domains.find((d) => d.id === mb.domainId && d.ownerId === user.id);
+    if (!domain) {
+      log("warn", "DELETE mailbox — domain not found or not owned by user", {
+        mailboxId: id,
+        email: mb.email,
+        domainId: mb.domainId,
+        userId: user.id,
+      });
+    }
     return domain ? mb : null;
   });
 
@@ -280,9 +300,16 @@ export async function DELETE(request: Request, context: Params) {
     return response;
   }
 
+  log("info", "DELETE mailbox — found, proceeding to delete from mail server", {
+    email: mailbox.email,
+    mailboxId: mailbox.id,
+    domainId: mailbox.domainId,
+  });
+
   // Delete from the mail server first
   try {
     await deleteMailcowMailbox(mailbox.email);
+    log("info", "DELETE mailbox — mail server deletion succeeded", { email: mailbox.email });
   } catch (error) {
     // If the mailbox doesn't exist on the mail server (access_denied),
     // still remove it from local data so the user can clean up stale records
@@ -290,9 +317,10 @@ export async function DELETE(request: Request, context: Params) {
     const isNotFound = isMailcowError && /access_denied/i.test(error.message);
 
     if (!isNotFound) {
-      log("error", "Mailbox delete failed on mail server", {
+      log("error", "DELETE mailbox — mail server deletion failed", {
         email: mailbox.email,
         error: error instanceof Error ? error.message : String(error),
+        isMailcowError,
       });
       const message = isMailcowError
         ? error.message
@@ -301,6 +329,9 @@ export async function DELETE(request: Request, context: Params) {
       logResponse(request, response, startTime);
       return response;
     }
+    log("warn", "DELETE mailbox — mail server returned access_denied, proceeding with local deletion", {
+      email: mailbox.email,
+    });
   }
 
   // Remove from local data
