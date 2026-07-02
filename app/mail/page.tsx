@@ -1321,7 +1321,7 @@ export default function MailPage() {
       {composeOpen && (
         <div className="mail-compose-overlay" onClick={() => !busy && closeCompose()}>
           <form className="mail-compose" onSubmit={sendMail} onClick={(event) => event.stopPropagation()}>
-            <header>
+            <header className="mail-compose-header">
               <div className="mail-compose-top-actions">
                 <button type="button" onClick={() => showStatus("Draft saved")} disabled={busy}>
                   <Save size={18} aria-hidden="true" /> Save
@@ -1345,134 +1345,139 @@ export default function MailPage() {
                 <X size={16} aria-hidden="true" /> Close
               </button>
             </header>
-            <label className="mail-compose-from">
-              <span>From</span>
-              <input value={account} readOnly />
-            </label>
-            <div className="mail-compose-line">
-              <span>To</span>
-              <input
-                value={compose.to}
-                onChange={(event) => setCompose((value) => ({ ...value, to: event.target.value }))}
-                placeholder="To"
-                required
-              />
-              <button type="button" onClick={() => setShowCcBcc((value) => !value)}>
-                Cc/Bcc <ChevronDown size={14} aria-hidden="true" />
-              </button>
-            </div>
-            {showCcBcc && (
-              <div className="mail-compose-grid">
-                <input
-                  value={compose.cc}
-                  onChange={(event) => setCompose((value) => ({ ...value, cc: event.target.value }))}
-                  placeholder="Cc"
-                />
-                <input
-                  value={compose.bcc}
-                  onChange={(event) => setCompose((value) => ({ ...value, bcc: event.target.value }))}
-                  placeholder="Bcc"
-                />
+            <div className="mail-compose-body">
+              <div className="mail-compose-main">
+                <div className="mail-compose-main-scroll">
+                  <label className="mail-compose-from">
+                    <span>From</span>
+                    <input value={account} readOnly />
+                  </label>
+                  <div className="mail-compose-line">
+                    <span>To</span>
+                    <input
+                      value={compose.to}
+                      onChange={(event) => setCompose((value) => ({ ...value, to: event.target.value }))}
+                      placeholder="To"
+                      required
+                    />
+                    <button type="button" onClick={() => setShowCcBcc((value) => !value)}>
+                      Cc/Bcc <ChevronDown size={14} aria-hidden="true" />
+                    </button>
+                  </div>
+                  {showCcBcc && (
+                    <div className="mail-compose-grid">
+                      <input
+                        value={compose.cc}
+                        onChange={(event) => setCompose((value) => ({ ...value, cc: event.target.value }))}
+                        placeholder="Cc"
+                      />
+                      <input
+                        value={compose.bcc}
+                        onChange={(event) => setCompose((value) => ({ ...value, bcc: event.target.value }))}
+                        placeholder="Bcc"
+                      />
+                    </div>
+                  )}
+                  <input
+                    className="mail-compose-subject"
+                    value={compose.subject}
+                    onChange={(event) => setCompose((value) => ({ ...value, subject: event.target.value }))}
+                    placeholder="Subject"
+                  />
+                  <div className="mail-editor">
+                    <div className="mail-editor-toolbar" aria-label="Message formatting">
+                      <button type="button" onClick={() => runEditorCommand("undo")} title="Undo">
+                        <Undo2 size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("redo")} title="Redo">
+                        <Redo2 size={15} aria-hidden="true" />
+                      </button>
+                      <span aria-hidden="true" />
+                      <button type="button" onClick={() => setEditorBlock("h1")} title="Heading 1">
+                        <Heading1 size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => setEditorBlock("h2")} title="Heading 2">
+                        <Heading2 size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => setEditorBlock("p")} title="Paragraph">
+                        <FileText size={15} aria-hidden="true" />
+                      </button>
+                      <select defaultValue="Verdana" onChange={(event) => runEditorCommand("fontName", event.target.value)} title="Font family">
+                        <option value="Verdana">Verdana</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Courier New">Mono</option>
+                      </select>
+                      <select defaultValue="3" onChange={(event) => runEditorCommand("fontSize", event.target.value)} title="Font size">
+                        <option value="2">10pt</option>
+                        <option value="3">12pt</option>
+                        <option value="4">14pt</option>
+                        <option value="5">18pt</option>
+                        <option value="6">24pt</option>
+                      </select>
+                      <span aria-hidden="true" />
+                      <button type="button" onClick={() => runEditorCommand("bold")} title="Bold">
+                        <Bold size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("italic")} title="Italic">
+                        <Italic size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("underline")} title="Underline">
+                        <Underline size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("strikeThrough")} title="Strikethrough">
+                        <Strikethrough size={15} aria-hidden="true" />
+                      </button>
+                      <label title="Text color">
+                        <Palette size={15} aria-hidden="true" />
+                        <input type="color" onChange={(event) => runEditorCommand("foreColor", event.target.value)} />
+                      </label>
+                      <label title="Highlight color">
+                        <Highlighter size={15} aria-hidden="true" />
+                        <input type="color" onChange={(event) => runEditorCommand("hiliteColor", event.target.value)} />
+                      </label>
+                      <span aria-hidden="true" />
+                      <button type="button" onClick={() => runEditorCommand("justifyLeft")} title="Align left">
+                        <AlignLeft size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("justifyCenter")} title="Align center">
+                        <AlignCenter size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("justifyRight")} title="Align right">
+                        <AlignRight size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("insertUnorderedList")} title="Bulleted list">
+                        <List size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("insertOrderedList")} title="Numbered list">
+                        <ListOrdered size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={() => runEditorCommand("formatBlock", "blockquote")} title="Quote">
+                        <Quote size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={addEditorLink} title="Insert link">
+                        <Link2 size={15} aria-hidden="true" />
+                      </button>
+                      <button type="button" onClick={clearComposeFormatting} title="Clear formatting">
+                        <RemoveFormatting size={15} aria-hidden="true" />
+                      </button>
+                    </div>
+                    <div
+                      ref={composeEditorRef}
+                      className="mail-editor-body"
+                      contentEditable
+                      data-placeholder="Write your message"
+                      onInput={updateComposeEditor}
+                      onBlur={updateComposeEditor}
+                      suppressContentEditableWarning
+                      role="textbox"
+                      aria-label="Message body"
+                    />
+                  </div>
+                </div>
               </div>
-            )}
-            <input
-              className="mail-compose-subject"
-              value={compose.subject}
-              onChange={(event) => setCompose((value) => ({ ...value, subject: event.target.value }))}
-              placeholder="Subject"
-            />
-            <div className="mail-editor">
-              <div className="mail-editor-toolbar" aria-label="Message formatting">
-                <button type="button" onClick={() => runEditorCommand("undo")} title="Undo">
-                  <Undo2 size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("redo")} title="Redo">
-                  <Redo2 size={15} aria-hidden="true" />
-                </button>
-                <span aria-hidden="true" />
-                <button type="button" onClick={() => setEditorBlock("h1")} title="Heading 1">
-                  <Heading1 size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => setEditorBlock("h2")} title="Heading 2">
-                  <Heading2 size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => setEditorBlock("p")} title="Paragraph">
-                  <FileText size={15} aria-hidden="true" />
-                </button>
-                <select defaultValue="Verdana" onChange={(event) => runEditorCommand("fontName", event.target.value)} title="Font family">
-                  <option value="Verdana">Verdana</option>
-                  <option value="Arial">Arial</option>
-                  <option value="Georgia">Georgia</option>
-                  <option value="Tahoma">Tahoma</option>
-                  <option value="Courier New">Mono</option>
-                </select>
-                <select defaultValue="3" onChange={(event) => runEditorCommand("fontSize", event.target.value)} title="Font size">
-                  <option value="2">10pt</option>
-                  <option value="3">12pt</option>
-                  <option value="4">14pt</option>
-                  <option value="5">18pt</option>
-                  <option value="6">24pt</option>
-                </select>
-                <span aria-hidden="true" />
-                <button type="button" onClick={() => runEditorCommand("bold")} title="Bold">
-                  <Bold size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("italic")} title="Italic">
-                  <Italic size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("underline")} title="Underline">
-                  <Underline size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("strikeThrough")} title="Strikethrough">
-                  <Strikethrough size={15} aria-hidden="true" />
-                </button>
-                <label title="Text color">
-                  <Palette size={15} aria-hidden="true" />
-                  <input type="color" onChange={(event) => runEditorCommand("foreColor", event.target.value)} />
-                </label>
-                <label title="Highlight color">
-                  <Highlighter size={15} aria-hidden="true" />
-                  <input type="color" onChange={(event) => runEditorCommand("hiliteColor", event.target.value)} />
-                </label>
-                <span aria-hidden="true" />
-                <button type="button" onClick={() => runEditorCommand("justifyLeft")} title="Align left">
-                  <AlignLeft size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("justifyCenter")} title="Align center">
-                  <AlignCenter size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("justifyRight")} title="Align right">
-                  <AlignRight size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("insertUnorderedList")} title="Bulleted list">
-                  <List size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("insertOrderedList")} title="Numbered list">
-                  <ListOrdered size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={() => runEditorCommand("formatBlock", "blockquote")} title="Quote">
-                  <Quote size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={addEditorLink} title="Insert link">
-                  <Link2 size={15} aria-hidden="true" />
-                </button>
-                <button type="button" onClick={clearComposeFormatting} title="Clear formatting">
-                  <RemoveFormatting size={15} aria-hidden="true" />
-                </button>
-              </div>
-              <div
-                ref={composeEditorRef}
-                className="mail-editor-body"
-                contentEditable
-                data-placeholder="Write your message"
-                onInput={updateComposeEditor}
-                onBlur={updateComposeEditor}
-                suppressContentEditableWarning
-                role="textbox"
-                aria-label="Message body"
-              />
-            </div>
-            <div className="mail-compose-tools">
+              <div className="mail-compose-tools">
               <strong>Options and attachments</strong>
               <label>
                 <span>Maximum allowed file size is 32 MB</span>
@@ -1518,6 +1523,7 @@ export default function MailPage() {
                   <option>Drafts</option>
                 </select>
               </label>
+            </div>
             </div>
             <footer className="flex items-center justify-between gap-3 px-5 py-3 border-t border-white/10 bg-gradient-to-b from-transparent to-black/20 backdrop-blur-sm">
               <span className="text-xs text-white/40 font-medium">
