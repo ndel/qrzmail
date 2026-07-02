@@ -1,3 +1,4 @@
+@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 
 /* ── Tokens (Dark — default) ──────────────────────────── */
@@ -5404,8 +5405,9 @@ code {
   align-items: stretch;
   justify-items: stretch;
   padding: 0;
-  background: #1d282c;
-  backdrop-filter: none;
+  background: rgba(13, 21, 32, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 .webmail-route .mail-compose-overlay::before {
@@ -5428,9 +5430,16 @@ code {
   overflow: hidden;
   border: 0;
   border-radius: 0;
-  background: #1d282c;
+  background: linear-gradient(135deg, #0f1923 0%, #15222e 50%, #111b26 100%);
   color: #cbd5d8;
   box-shadow: none;
+}
+
+.webmail-route .mail-compose footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  background: #1d282c;
 }
 
 .webmail-route .mail-compose header {
@@ -5441,9 +5450,9 @@ code {
   align-items: center;
   margin: 0 -20px 14px;
   padding: 0 20px;
-  border-bottom: 1px solid #4f6770;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 0;
-  background: #1d282c;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 100%);
 }
 
 .mail-compose-top-actions {
@@ -5508,10 +5517,18 @@ code {
 .webmail-route .mail-compose input,
 .webmail-route .mail-compose select {
   min-height: 44px;
-  border: 1px solid #5c737b;
-  border-radius: 4px;
-  background: #1d282c;
-  color: #d6e1e4;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #e8edf5;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.webmail-route .mail-compose input:focus,
+.webmail-route .mail-compose select:focus {
+  border-color: rgba(59, 130, 246, 0.5);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+  outline: none;
 }
 
 .webmail-route .mail-compose-subject {
@@ -5521,11 +5538,18 @@ code {
 
 .webmail-route .mail-compose-line button {
   height: 44px;
-  border: 1px solid #5c737b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-left: 0;
-  border-radius: 0 4px 4px 0;
-  background: #2f4045;
-  color: #d6e1e4;
+  border-radius: 0 8px 8px 0;
+  background: rgba(255, 255, 255, 0.06);
+  color: #9bb0b8;
+  font-weight: 600;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.webmail-route .mail-compose-line button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e8edf5;
 }
 
 .webmail-route .mail-editor {
@@ -5542,8 +5566,8 @@ code {
   gap: 0;
   padding: 0;
   overflow-x: auto;
-  border-bottom: 1px solid #b7c6cb;
-  background: #34464b;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.2);
 }
 
 .webmail-route .mail-editor-toolbar button,
@@ -5552,10 +5576,17 @@ code {
   width: 44px;
   height: 43px;
   border: 0;
-  border-right: 1px solid #5c737b;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0;
   background: transparent;
-  color: #d0dbde;
+  color: #9bb0b8;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.webmail-route .mail-editor-toolbar button:hover,
+.webmail-route .mail-editor-toolbar label:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e8edf5;
 }
 
 .webmail-route .mail-editor-toolbar select {
@@ -5589,14 +5620,19 @@ code {
   margin: -14px -20px -18px 24px;
   padding: 28px 22px;
   border: 0;
-  border-left: 1px solid #4f6770;
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0;
-  background: #1d282c;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, transparent 100%);
 }
 
 .webmail-route .mail-compose-tools > strong {
-  color: #d6e1e4;
+  color: #e8edf5;
   text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-size: 13px;
+  text-transform: uppercase;
+  opacity: 0.7;
 }
 
 .webmail-route .mail-compose-tools label:first-of-type {
@@ -5605,8 +5641,16 @@ code {
   place-items: center;
   gap: 12px;
   padding: 20px;
-  border: 2px dashed #4f6770;
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
   color: #9fb2b7;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+}
+
+.webmail-route .mail-compose-tools label:first-of-type:hover {
+  border-color: rgba(59, 130, 246, 0.4);
+  background: rgba(59, 130, 246, 0.06);
 }
 
 .webmail-route .mail-compose-tools label:first-of-type input {

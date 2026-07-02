@@ -1519,12 +1519,15 @@ export default function MailPage() {
                 </select>
               </label>
             </div>
-            <footer>
-              <span>
+            <footer className="flex items-center justify-between gap-3 px-5 py-3 border-t border-white/10 bg-gradient-to-b from-transparent to-black/20 backdrop-blur-sm">
+              <span className="text-xs text-white/40 font-medium">
                 {composeFiles.length} attachments
                 {Object.values(compose).some((value) => value.trim()) ? " · draft saved" : ""}
               </span>
-              <button className="mail-primary" disabled={busy}>
+              <button
+                className="mail-primary inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-400 hover:to-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-500/25 transition-all duration-200 hover:shadow-blue-400/30 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+                disabled={busy}
+              >
                 <Send size={15} aria-hidden="true" /> {busy ? "Sending..." : "Send"}
               </button>
             </footer>
