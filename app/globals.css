@@ -4311,14 +4311,14 @@ code {
 
 .mail-empty strong,
 .mail-reader-empty strong {
-  color: #25344b;
+  color: var(--ink);
   font-size: 16px;
 }
 
 .mail-empty span,
 .mail-reader-empty span {
   max-width: 320px;
-  color: #66758b;
+  color: var(--ink-soft);
   font-size: 13px;
   line-height: 1.5;
 }
@@ -5844,8 +5844,11 @@ code {
 .webmail-light .mail-account strong,
 .webmail-light .mail-brand-panel strong,
 .webmail-light .mail-appbar h1,
-.webmail-light .mail-reader-header h2,
-.webmail-light .mail-compose header button,
+.webmail-light .mail-reader-header h2,.webmail-light .mail-reader-header h2 {
+  color: #0f1a20;
+}
+
+.webmail-light .mail-reader-header h2,.webmail-light .mail-compose header button,
 .webmail-light .mail-compose-top-actions button,
 .webmail-light .mail-compose-title,
 .webmail-light .mail-compose-from span,
@@ -5882,12 +5885,12 @@ code {
 .webmail-light .mail-address-line strong,
 .webmail-light .mail-address-line em,
 .webmail-light .mail-utility-panel p {
-  color: #61747c;
+  color: #3d5560;
 }
 
 .webmail-light .mail-message-row strong,
 .webmail-light .mail-utility-panel h2 {
-  color: #17272f;
+  color: #0f1a20;
 }
 
 .webmail-light .mail-toolbar,
@@ -5906,7 +5909,7 @@ code {
 .webmail-light .mail-toolbar button,
 .webmail-light .mail-reader-actions button {
   background: transparent;
-  color: #61747c;
+  color: #3d5560;
 }
 
 .webmail-light .mail-toolbar button:hover,
@@ -5934,7 +5937,7 @@ code {
 
 .webmail-light .mail-search button {
   background: transparent;
-  color: #61747c;
+  color: #3d5560;
 }
 
 .webmail-light .mail-search button:hover {
@@ -5956,7 +5959,12 @@ code {
 .webmail-light .mail-contact-grid button,
 .webmail-light .mail-settings-grid label,
 .webmail-light .mail-settings-grid button {
-  color: #1d2d35;
+  color: #0f1a20;
+}
+
+.webmail-light .mail-route .mail-reader-empty strong,
+.webmail-light .mail-route .mail-reader-empty span {
+  color: #3d5560;
 }
 
 @media (max-width: 1180px) {
@@ -6081,6 +6089,11 @@ code {
 
 .mail-route .mail-reader-empty {
   min-height: 100%;
+}
+
+.mail-route .mail-reader-empty strong,
+.mail-route .mail-reader-empty span {
+  color: var(--ink-soft);
 }
 
 /* ── Mail toolbar ──────────────────────────────────────── */

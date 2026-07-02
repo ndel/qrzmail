@@ -13,6 +13,8 @@ import {
   Check,
   ChevronDown,
   ChevronLeft,
+  CornerUpLeft,
+  CornerUpRight,
   Edit3,
   FileText,
   Folder,
@@ -1179,8 +1181,8 @@ export default function MailPage() {
                   <ArrowDown size={15} aria-hidden="true" />
                 </button>
                 <span className="mail-toolbar-divider" aria-hidden="true" />
-                <button type="button" onClick={() => startCompose("reply")} disabled={busy} title="Reply"><MailOpen size={15} aria-hidden="true" /></button>
-                <button type="button" onClick={() => startCompose("replyAll")} disabled={busy} title="Reply all"><MailOpen size={15} aria-hidden="true" /></button>
+                <button type="button" onClick={() => startCompose("reply")} disabled={busy} title="Reply"><CornerUpLeft size={15} aria-hidden="true" /></button>
+                <button type="button" onClick={() => startCompose("replyAll")} disabled={busy} title="Reply all"><CornerUpRight size={15} aria-hidden="true" /></button>
                 <button type="button" onClick={() => startCompose("forward")} disabled={busy} title="Forward"><Send size={15} aria-hidden="true" /></button>
                 <span className="mail-toolbar-divider" aria-hidden="true" />
                 <button type="button" onClick={() => patchSelected(selected.seen ? "unread" : "read")} disabled={busy} title={selected.seen ? "Mark unread" : "Mark read"}>
